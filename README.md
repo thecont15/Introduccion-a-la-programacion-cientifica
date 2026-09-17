@@ -1,4 +1,6 @@
 # Introduccion-a-la-programacion-cientifica
+
+
 Periodo para 2026-2
 
 Este documento cubre la Evaluación 1 y los temas técnicos de lectura, parseo, depuración e imputación de datos en Python. El objetivo no es “hacer que el archivo corra”, sino dejar el dataset en un estado reproducible, justificado y científicamente defendible.
