@@ -1,0 +1,1748 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Transbordos y minutos · Red Valle Alto</title>
+<style>
+  :root {
+    --ink: #1c1915;
+    --muted: #5e564c;
+    --line: #e4dccf;
+    --paper: #f3eadc;
+    --card: #fffdf8;
+    --bfs: #0f6e68;
+    --dij: #1a56db;
+    --expreso: #c08416;
+    --gold: #a16207;
+    --mal: #c0392b;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    font-family: "Segoe UI", "Helvetica Neue", sans-serif;
+    color: var(--ink);
+    background:
+      radial-gradient(900px 420px at 0% -10%, #fbf6ec 0%, transparent 55%),
+      var(--paper);
+    overflow: hidden;
+  }
+  button, input { font: inherit; color: inherit; }
+  button { cursor: pointer; }
+  button:disabled { opacity: .45; cursor: default; }
+  button:focus-visible, input:focus-visible { outline: 2px solid var(--dij); outline-offset: 2px; }
+  code, .mono { font-family: Consolas, "Cascadia Mono", "Segoe UI Mono", monospace; }
+
+  .app { height: 100%; display: grid; grid-template-rows: 54px minmax(0, 1fr) 50px; }
+  header.top, footer.nav { display: flex; align-items: center; gap: 14px; padding: 0 18px; }
+  header.top { border-bottom: 1px solid var(--line); background: rgba(243, 234, 220, .92); }
+  .brand { font-size: 13px; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
+  .brand b { color: var(--ink); font-weight: 650; letter-spacing: 0; text-transform: none; font-size: 14px; }
+  #slideName { margin-left: auto; font-family: Georgia, "Palatino Linotype", serif; font-size: 16px; }
+  footer.nav { border-top: 1px solid var(--line); background: rgba(255, 253, 248, .94); }
+  .meter { flex: 1; height: 4px; background: #e5dccb; border-radius: 99px; overflow: hidden; }
+  #meter-bar { height: 100%; width: 0; background: var(--dij); transition: width .18s ease; }
+  #pos { font-variant-numeric: tabular-nums; font-size: 13px; color: var(--muted); min-width: 52px; }
+  .keys { font-size: 12px; color: var(--muted); }
+
+  .slide { display: none; height: 100%; overflow: auto; }
+  .slide.active { display: block; }
+  .slide.full.active { display: flex; flex-direction: column; overflow: hidden; }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 28px 28px 44px; }
+  h1, h2, h3 { font-family: Georgia, "Palatino Linotype", serif; font-weight: 500; letter-spacing: -.02em; }
+  h2 { font-size: clamp(28px, 3.6vw, 40px); line-height: 1.1; margin: 0 0 14px; }
+  p { font-size: 17px; line-height: 1.5; }
+  .lede { font-size: 19px; max-width: 70ch; }
+  .muted { color: var(--muted); }
+  .fine { font-size: 13px; color: var(--muted); line-height: 1.45; }
+  .kicker { letter-spacing: .14em; text-transform: uppercase; font-size: 12px; color: var(--dij); margin: 0 0 10px; }
+
+  .hero { min-height: 100%; display: grid; align-items: center; padding: 24px 5vw 36px; }
+  .hero-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(300px, .9fr); gap: 30px; align-items: center; }
+  .hero h1 { font-size: clamp(42px, 5.6vw, 72px); line-height: .96; margin: 0 0 16px; }
+  .pills { display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0; }
+  .pill { border: 1px solid var(--line); background: var(--card); border-radius: 999px; padding: 6px 12px; font-size: 14px; }
+  .pill i { font-style: normal; display: inline-block; width: 9px; height: 9px; border-radius: 99px; margin-right: 7px; }
+  .ficha { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 4px 16px; margin: 16px 0; }
+  .ficha dl { display: grid; grid-template-columns: auto 1fr; gap: 2px 14px; margin: 12px 0; font-size: 15px; }
+  .ficha dt { color: var(--muted); }
+  .ficha dd { margin: 0; font-weight: 600; }
+
+  .card, .rule { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 15px 16px 13px; }
+  .card h3 { display: block; font-size: 21px; font-weight: 500; margin: 0 0 6px; }
+  .card p { margin: 0 0 8px; font-size: 15px; line-height: 1.45; }
+  .card p:last-child { margin-bottom: 0; }
+  .card.bfs { box-shadow: inset 4px 0 0 var(--bfs); }
+  .card.dij { box-shadow: inset 4px 0 0 var(--dij); }
+  .card.exp { box-shadow: inset 4px 0 0 var(--expreso); }
+  .grid-2 { display: grid; grid-template-columns: 1.05fr .95fr; gap: 20px; align-items: start; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+  .note { border-left: 3px solid var(--gold); padding: 4px 0 4px 14px; color: var(--muted); font-size: 16px; }
+  pre.snip { background: #1c1915; color: #f6f1e7; border-radius: 16px; padding: 15px 18px; overflow: auto; font-size: 13px; line-height: 1.5; margin: 0; }
+
+  .btn, .transport button, footer button { border: 1px solid #d9d0c3; background: var(--card); border-radius: 999px; padding: 8px 14px; }
+  .btn.primary, button.primary { background: var(--ink); color: #fffdf8; border-color: var(--ink); }
+
+  /* ---- tabla de adyacencia ---- */
+  table.adj { width: 100%; border-collapse: collapse; font-size: 14px; }
+  table.adj th, table.adj td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  table.adj thead th { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+  table.adj tbody th { font-weight: 600; white-space: nowrap; width: 1%; }
+  table.adj tbody th small { display: block; font-weight: 400; color: var(--muted); font-size: 11.5px; }
+  .vec { display: inline-block; border: 1px solid var(--line); background: #fff; border-radius: 8px; padding: 2px 8px; margin: 2px 4px 2px 0; font-size: 13px; }
+  .vec b { font-weight: 600; }
+  .vec em { font-style: normal; color: var(--muted); font-variant-numeric: tabular-nums; }
+  tr.ruta-bfs td, tr.ruta-bfs th { background: #eaf6f4; }
+  tr.ruta-dij td, tr.ruta-dij th { background: #eaf0fd; }
+  tr.ruta-ambas td, tr.ruta-ambas th { background: #fdf3dd; }
+
+  /* ---- laboratorio ---- */
+  .lab { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) 352px; grid-template-rows: minmax(0, 1fr) auto; gap: 0 14px; padding: 10px 14px 6px; }
+  .lab-stage { min-height: 0; background: var(--card); border: 1px solid var(--line); border-radius: 16px; overflow: hidden; }
+  .lab-stage svg { width: 100%; height: 100%; display: block; }
+  .lab-panel { min-height: 0; overflow: auto; padding: 2px 8px 10px 0; }
+  .lab-panel h2 { font-size: 23px; margin: 2px 0 6px; }
+  .lab-panel p { font-size: 14.5px; margin: 0 0 9px; }
+  .eyebrow { margin: 0; letter-spacing: .12em; text-transform: uppercase; font-size: 11px; font-weight: 600; }
+  .bignum { font-family: Georgia, serif; font-size: 31px; line-height: 1; margin: 2px 0 8px; }
+  .bignum small { display: block; margin-top: 4px; font-family: "Segoe UI", sans-serif; font-size: 12.5px; color: var(--muted); letter-spacing: 0; }
+  .struct-label { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 10px 0 6px; }
+  .struct-label span { letter-spacing: 0; text-transform: none; }
+  .cola { display: flex; flex-direction: column; gap: 4px; margin-bottom: 6px; }
+  .fr { display: flex; justify-content: space-between; gap: 8px; font-size: 13px; padding: 4px 9px; border-radius: 8px; background: #fff; border: 1px solid var(--line); }
+  .fr.next { border-color: #d6a92a; background: #fff8e8; }
+  .fr b { font-variant-numeric: tabular-nums; font-weight: 650; }
+  .vacia { font-size: 13px; color: var(--muted); font-style: italic; }
+  .pathline { font-family: Georgia, serif; font-size: 15px !important; line-height: 1.4; }
+  .pseudo { list-style: none; margin: 8px 0 0; padding: 0; counter-reset: l; }
+  .pseudo li { padding: 3px 8px 3px 16px; font-size: 11.5px; color: #3d3832; border-radius: 8px; font-family: Consolas, monospace; text-indent: -8px; }
+  .pseudo li.on { background: #fff4d6; box-shadow: inset 3px 0 0 var(--gold); color: var(--ink); }
+  .legend { list-style: none; padding: 0; margin: 12px 0 0; display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--muted); }
+  .legend i { display: inline-block; width: 12px; height: 12px; border-radius: 99px; margin-right: 7px; vertical-align: -1px; }
+  .lg.esp { background: #f6e2a8; border: 1px solid #c79a1d; }
+  .lg.list { background: #1e3a5f; }
+  .lg.now { background: #c2410c; }
+  .lg.ruta { background: var(--dij); border-radius: 2px; height: 5px; vertical-align: 3px; }
+  .lg.alt { background: transparent; border-top: 3px dashed var(--bfs); height: 0; border-radius: 0; vertical-align: 4px; }
+
+  .transport { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding-top: 8px; }
+  .transport .grow { flex: 1 1 150px; }
+  input[type="range"] { width: 100%; accent-color: var(--dij); }
+
+  /* ---- comparación ---- */
+  .cmp-board { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .cmp-board svg { width: 100%; height: auto; aspect-ratio: 960 / 560; background: #fff; border-radius: 12px; border: 1px solid var(--line); }
+  .cmp-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 6px; }
+  .cmp-head h3 { margin: 0; }
+  .tag { font-size: 12px; border-radius: 999px; padding: 3px 10px; background: #f1ebdf; font-family: "Segoe UI", sans-serif; }
+  .marcador { display: flex; gap: 10px; flex-wrap: wrap; margin: 6px 0 0; }
+  .marcador div { flex: 1 1 110px; border: 1px solid var(--line); background: #fff; border-radius: 10px; padding: 7px 10px; }
+  .marcador b { display: block; font-family: Georgia, serif; font-size: 22px; font-weight: 500; }
+  .marcador small { color: var(--muted); font-size: 11.5px; }
+  .net-static { width: 100%; height: auto; aspect-ratio: 960 / 560; background: var(--card); border: 1px solid var(--line); border-radius: 16px; }
+  .lineas-leyenda { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0 0; }
+  .lineas-leyenda span { font-size: 13px; border: 1px solid var(--line); background: var(--card); border-radius: 999px; padding: 4px 11px; }
+  .lineas-leyenda i { font-style: normal; display: inline-block; width: 16px; height: 4px; border-radius: 2px; margin-right: 7px; vertical-align: 2px; }
+
+  .qa { display: block; width: 100%; text-align: left; background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 12px 15px; margin: 0 0 7px; }
+  .qa b { font-family: Georgia, serif; font-size: 17px; font-weight: 500; }
+  .answer { display: none; margin: -2px 0 11px; padding: 0 8px 8px 16px; color: var(--muted); font-size: 15.5px; }
+  .answer.show { display: block; }
+
+  /* El aviso va fijo: `body` tiene overflow hidden, así que un bloque en el
+     flujo normal quedaría fuera de la pantalla y no se vería nunca. Va arriba
+     y no abajo para no taparle los controles a los laboratorios. */
+  #aviso { display: none; position: fixed; left: 16px; right: 16px; top: 62px; z-index: 50;
+    padding: 10px 14px; border-radius: 12px; background: #fdeaea; border: 1px solid #e8b4b4;
+    color: #7d2020; font-size: 14px; box-shadow: 0 6px 22px rgba(80, 20, 20, .16); }
+  #aviso.show { display: block; }
+  #aviso button { float: right; margin-left: 12px; border: 1px solid #e8b4b4; background: #fff; border-radius: 999px; padding: 2px 10px; font-size: 12px; }
+
+  @media (max-width: 1000px) {
+    .hero-grid, .grid-2, .grid-3, .cmp-board { grid-template-columns: 1fr; }
+    .lab { grid-template-columns: 1fr; grid-template-rows: minmax(230px, 1fr) minmax(190px, 36vh) auto; }
+    .lab-panel { padding: 8px 4px; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div class="brand">Taller de grafos · <b>Problema 4.3 · Transbordos y minutos</b></div>
+    <div id="slideName">Inicio</div>
+  </header>
+  <main id="deck">
+
+    <!-- ============================ 1. INICIO ============================ -->
+    <section class="slide active" data-title="Inicio">
+      <div class="hero">
+        <div class="hero-grid">
+          <div>
+            <p class="kicker">Problema 4.3 · taller de grafos</p>
+            <h1>Transbordos y minutos.</h1>
+            <p class="lede">En la Red Valle Alto, <b>¿cuál ruta de Portal Norte a La Cantera hace menos transbordos y cuál tarda menos minutos?</b></p>
+            <p id="hero-explica">—</p>
+            <div class="pills">
+              <span class="pill"><i style="background:#0f6e68"></i>BFS · cuenta transbordos</span>
+              <span class="pill"><i style="background:#1a56db"></i>Dijkstra · suma minutos</span>
+            </div>
+            <div class="ficha">
+              <dl>
+                <dt>Autor</dt><dd id="ficha-autor">—</dd>
+                <dt>Red</dt><dd id="ficha-red">—</dd>
+                <dt>Origen → destino</dt><dd id="ficha-od">—</dd>
+                <dt>Unidades</dt><dd>transbordos (conteo) · minutos (suma)</dd>
+              </dl>
+            </div>
+            <p><button type="button" class="btn primary" id="start-btn">Empezar</button></p>
+            <p class="fine">Archivo único. Doble clic, sin servidor y sin conexión. ← → cambian de diapositiva. En los laboratorios, N y P mueven el algoritmo y la barra espaciadora lo reproduce.</p>
+          </div>
+          <div>
+            <svg id="svg-portada" viewBox="0 0 960 560" class="net-static" role="img" aria-label="Red Valle Alto con las dos rutas en disputa"></svg>
+            <p class="fine" id="cap-portada">—</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================ 2. LA RED ============================ -->
+    <section class="slide" data-title="La red">
+      <div class="wrap">
+        <p class="kicker">El grafo propio</p>
+        <h2>Doce estaciones, dieciséis tramos, cuatro líneas.</h2>
+        <div class="grid-2">
+          <div>
+            <svg id="svg-red" viewBox="0 0 960 560" class="net-static" role="img" aria-label="Mapa de la Red Valle Alto con los minutos de cada tramo"></svg>
+            <div class="lineas-leyenda" id="leyenda-lineas"></div>
+          </div>
+          <div>
+            <article class="card">
+              <h3>Qué es cada cosa</h3>
+              <p><b>Vértice:</b> una estación.</p>
+              <p><b>Arista:</b> un tramo con servicio directo entre dos estaciones.</p>
+              <p><b>Peso:</b> los minutos que dura ese tramo. Siempre positivo. El número escrito sobre la línea manda: el largo del trazo en pantalla no es el peso.</p>
+            </article>
+            <article class="card exp" style="margin-top:12px">
+              <h3>Cómo se cuenta un transbordo</h3>
+              <p>Siguiendo el enunciado: <i>cambiar de línea es seguir una arista</i>. Cada tramo que se toma cuenta como un transbordo, así que <b>minimizar transbordos es minimizar aristas</b>, y esa es exactamente la pregunta que responde BFS.</p>
+              <p class="fine">Los minutos son otra cosa: una suma. Esa es la pregunta de Dijkstra.</p>
+            </article>
+            <p class="note" style="margin-top:14px">La Red Valle Alto y sus estaciones son inventadas. No es un sistema real ni el mapa del ejemplo de clase.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================== 3. LISTA DE ADYACENCIA ====================== -->
+    <section class="slide" data-title="Lista de adyacencia">
+      <div class="wrap">
+        <p class="kicker">El grafo como lo ve el algoritmo</p>
+        <h2>Lista de adyacencia, con los minutos de cada tramo.</h2>
+        <p class="lede">Esta tabla no está escrita a mano: el dibujo de la diapositiva anterior y esta lista salen de la misma tabla de datos, así que no pueden contradecirse.</p>
+        <table class="adj">
+          <thead><tr><th scope="col">Estación</th><th scope="col">Vecinas y minutos</th></tr></thead>
+          <tbody id="tabla-adyacencia"></tbody>
+        </table>
+        <p class="fine" id="resumen-adj" style="margin-top:12px">—</p>
+        <p class="fine">Fondo verde: solo en la ruta de menos transbordos. Fondo azul: solo en la de menos minutos. Fondo ámbar: en las dos (el origen y el destino). El algoritmo no ve el mapa; solo ve esta lista.</p>
+      </div>
+    </section>
+
+    <!-- ======================== 4. DOS PREGUNTAS ======================== -->
+    <section class="slide" data-title="Dos preguntas">
+      <div class="wrap">
+        <p class="kicker">Una red, dos preguntas</p>
+        <h2>Contar tramos y sumar minutos no son el mismo problema.</h2>
+        <div class="grid-2">
+          <div>
+            <article class="card bfs">
+              <h3 style="color:#0f6e68">BFS · menos transbordos</h3>
+              <p>Avanza por olas con una <b>cola</b>: primero las vecinas del origen, después las vecinas de esas. Si cada tramo cuenta 1, la primera vez que una estación entra a la cola ya trae el mínimo de tramos, y por eso no se vuelve a encolar.</p>
+              <p>Responde un <b>conteo</b>. No sabe que un tramo dura 19 minutos y otro 3: los dos valen 1.</p>
+            </article>
+            <article class="card dij" style="margin-top:12px">
+              <h3 style="color:#1a56db">Dijkstra · menos minutos</h3>
+              <p>Cada estación guarda su mejor marca en minutos y la estación <b>previa</b> con la que la consiguió. En cada paso se confirma la pendiente con menos minutos; como los pesos no restan, esa marca ya no puede bajar.</p>
+              <p>Responde una <b>suma</b>. Probar un tramo es <span class="mono">marca(u) + minutos(u,v)</span> contra la marca que ya tenía v.</p>
+            </article>
+          </div>
+          <div>
+            <article class="card exp">
+              <h3>La trampa de esta red</h3>
+              <p id="trampa-1">—</p>
+              <p id="trampa-2">—</p>
+              <p>Para BFS ese tramo vale 1, igual que los de 3 o 4 minutos. Así que lo toma, y gana en conteo. Para Dijkstra es carísimo, y lo descarta.</p>
+            </article>
+            <div class="marcador" id="marcador-previo"></div>
+            <p class="note" style="margin-top:14px">Si todos los tramos duraran lo mismo, las dos preguntas tendrían la misma respuesta. Se separan justamente porque los minutos son distintos.</p>
+            <p class="fine">Lo que sigue son los dos laboratorios: primero la cola de BFS, después los pendientes de Dijkstra. Al final, las dos rutas una al lado de la otra.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================= 5. LABORATORIO BFS ======================= -->
+    <section class="slide full" data-title="Laboratorio BFS" data-player="bfs">
+      <div class="lab" id="lab-bfs">
+        <div class="lab-stage"><svg id="svg-bfs" viewBox="0 0 960 560" role="img" aria-label="BFS sobre la Red Valle Alto"></svg></div>
+        <aside class="lab-panel">
+          <p class="eyebrow" style="color:#0f6e68">BFS · cola · cuenta transbordos</p>
+          <p class="bignum" data-stat>—</p>
+          <h2 data-step-title>—</h2>
+          <p data-step-text>—</p>
+          <p class="pathline" data-path></p>
+          <div class="struct-label" data-struct-label>Cola <span>· el frente arriba</span></div>
+          <div class="cola" data-struct></div>
+          <ol class="pseudo" data-code></ol>
+          <ul class="legend">
+            <li><i class="lg esp"></i>En la cola, esperando turno</li>
+            <li><i class="lg list"></i>Ya salió de la cola: su conteo quedó fijo</li>
+            <li><i class="lg now"></i>Estación del paso actual</li>
+            <li><i class="lg ruta"></i>Ruta que se reconstruye</li>
+            <li><i class="lg alt"></i>La otra respuesta, al cierre</li>
+          </ul>
+          <p class="fine" data-unit>El número dentro del círculo es la cantidad de tramos desde el origen, no los minutos.</p>
+        </aside>
+        <div class="transport">
+          <button type="button" data-first>Reiniciar</button>
+          <button type="button" data-prev>Anterior</button>
+          <button type="button" data-next>Siguiente</button>
+          <button type="button" data-mark>Siguiente estación</button>
+          <button type="button" class="primary" data-play>Reproducir</button>
+          <button type="button" data-last>Ver cierre</button>
+          <span class="grow"><input data-range type="range" min="0" max="1" value="0" aria-label="Paso de BFS"></span>
+          <span data-count>1 / 1</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== 6. LABORATORIO DIJKSTRA ===================== -->
+    <section class="slide full" data-title="Laboratorio Dijkstra" data-player="dijkstra">
+      <div class="lab" id="lab-dijkstra">
+        <div class="lab-stage"><svg id="svg-dijkstra" viewBox="0 0 960 560" role="img" aria-label="Dijkstra sobre la Red Valle Alto"></svg></div>
+        <aside class="lab-panel">
+          <p class="eyebrow" style="color:#1a56db">Dijkstra · pendientes · suma minutos</p>
+          <p class="bignum" data-stat>—</p>
+          <h2 data-step-title>—</h2>
+          <p data-step-text>—</p>
+          <p class="pathline" data-path></p>
+          <div class="struct-label" data-struct-label>Pendientes <span>· primero la de menos minutos</span></div>
+          <div class="cola" data-struct></div>
+          <ol class="pseudo" data-code></ol>
+          <ul class="legend">
+            <li><i class="lg esp"></i>Pendiente: su marca todavía puede bajar</li>
+            <li><i class="lg list"></i>Confirmada: su marca ya es definitiva</li>
+            <li><i class="lg now"></i>Estación del paso actual</li>
+            <li><i class="lg ruta"></i>Ruta que se reconstruye</li>
+            <li><i class="lg alt"></i>La otra respuesta, al cierre</li>
+          </ul>
+          <p class="fine" data-unit>El número dentro del círculo es la mejor marca conocida, en minutos.</p>
+        </aside>
+        <div class="transport">
+          <button type="button" data-first>Reiniciar</button>
+          <button type="button" data-prev>Anterior</button>
+          <button type="button" data-next>Siguiente</button>
+          <button type="button" data-mark>Siguiente confirmada</button>
+          <button type="button" class="primary" data-play>Reproducir</button>
+          <button type="button" data-last>Ver cierre</button>
+          <span class="grow"><input data-range type="range" min="0" max="1" value="0" aria-label="Paso de Dijkstra"></span>
+          <span data-count>1 / 1</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================== 7. LAS DOS RUTAS ======================== -->
+    <section class="slide" data-title="Las dos rutas">
+      <div class="wrap">
+        <p class="kicker">La comparación que pide el problema</p>
+        <h2 id="cmp-titulo">—</h2>
+        <div class="cmp-board">
+          <article class="card">
+            <div class="cmp-head"><h3 style="color:#0f6e68">Menos transbordos · BFS</h3><span class="tag" id="cmp-bfs-tag">—</span></div>
+            <svg id="cmp-bfs" viewBox="0 0 960 560" role="img" aria-label="Ruta de menos transbordos"></svg>
+            <p class="pathline" id="cmp-bfs-ruta">—</p>
+            <p class="fine" id="cmp-bfs-cap">—</p>
+          </article>
+          <article class="card">
+            <div class="cmp-head"><h3 style="color:#1a56db">Menos minutos · Dijkstra</h3><span class="tag" id="cmp-dij-tag">—</span></div>
+            <svg id="cmp-dij" viewBox="0 0 960 560" role="img" aria-label="Ruta de menos minutos"></svg>
+            <p class="pathline" id="cmp-dij-ruta">—</p>
+            <p class="fine" id="cmp-dij-cap">—</p>
+          </article>
+        </div>
+        <div class="grid-2" style="margin-top:16px">
+          <article class="card">
+            <h3>Por qué no son la misma ruta</h3>
+            <p id="porque-1">—</p>
+            <p id="porque-2">—</p>
+          </article>
+          <div class="marcador" id="marcador-final"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================== 8. EN PYTHON ========================== -->
+    <section class="slide" data-title="En Python">
+      <div class="wrap">
+        <p class="kicker">Del dibujo al código</p>
+        <h2>La cola y la cola de prioridad.</h2>
+        <p>La red es un diccionario de vecinas. Para BFS basta la lista de vecinas; para Dijkstra hace falta el par <span class="mono">(vecina, minutos)</span>. Es el mismo mecanismo de los laboratorios, sin la animación.</p>
+        <pre class="snip">from collections import deque
+import heapq
+
+RED = {
+    "Portal Norte": [("Aurora", 4), ("Mirador", 3)],
+    "Aurora":       [("Bulevar", 19), ("Las Ferias", 6), ("Portal Norte", 4)],
+    "Mirador":      [("La Cumbre", 8), ("Portal Norte", 3), ("El Tejar", 4)],
+    # ... el resto de la lista de adyacencia
+}
+
+def menos_transbordos(red, origen, destino):
+    """BFS: cuenta tramos. Cada tramo vale 1, duren lo que duren."""
+    tramos = {origen: 0}
+    previo = {origen: None}
+    cola = deque([origen])
+    while cola:
+        u = cola.popleft()
+        if u == destino:
+            break
+        for v, _minutos in red[u]:          # los minutos no se usan aqui
+            if v not in tramos:
+                tramos[v] = tramos[u] + 1
+                previo[v] = u
+                cola.append(v)
+    return tramos.get(destino), previo
+
+def menos_minutos(red, origen, destino):
+    """Dijkstra: suma minutos positivos."""
+    marca = {origen: 0}
+    previo = {origen: None}
+    confirmadas = set()
+    pendientes = [(0, origen)]
+    while pendientes:
+        d, u = heapq.heappop(pendientes)
+        if u in confirmadas:
+            continue
+        confirmadas.add(u)                  # su marca ya no puede bajar
+        if u == destino:
+            break
+        for v, minutos in red[u]:
+            nueva = d + minutos
+            if nueva &lt; marca.get(v, float("inf")):
+                marca[v] = nueva
+                previo[v] = u
+                heapq.heappush(pendientes, (nueva, v))
+    return marca.get(destino), previo
+
+def reconstruir(previo, destino):
+    ruta, c = [], destino
+    while c is not None:
+        ruta.append(c)
+        c = previo[c]
+    return ruta[::-1]</pre>
+        <p class="fine"><span class="mono">deque.popleft()</span> saca el frente de la cola: eso es la ola de BFS. <span class="mono">heapq</span> es la cola de prioridad: siempre entrega la estación pendiente con menos minutos acumulados. Cambiar una estructura por la otra es cambiar de pregunta.</p>
+      </div>
+    </section>
+
+    <!-- =========================== 9. CIERRE =========================== -->
+    <section class="slide" data-title="Cierre">
+      <div class="wrap">
+        <p class="kicker">La respuesta</p>
+        <h2 id="cierre-titulo">—</h2>
+        <div class="grid-2">
+          <div>
+            <article class="card bfs">
+              <h3 style="color:#0f6e68">Menos transbordos</h3>
+              <p id="cierre-bfs">—</p>
+            </article>
+            <article class="card dij" style="margin-top:12px">
+              <h3 style="color:#1a56db">Menos minutos</h3>
+              <p id="cierre-dij">—</p>
+            </article>
+            <p class="note" style="margin-top:14px" id="cierre-nota">—</p>
+          </div>
+          <div>
+            <button type="button" class="qa"><b>¿Por qué BFS no sirve para minimizar minutos?</b></button>
+            <p class="answer">Porque trata cada tramo como 1. El Expreso de 19 minutos le gana a cinco tramos cortos, aunque la suma de esos cinco sea menor. BFS responde un conteo; los minutos son una suma.</p>
+            <button type="button" class="qa"><b>¿Por qué Dijkstra confirma estaciones que no quedan en la ruta?</b></button>
+            <p class="answer" id="answer-off">—</p>
+            <button type="button" class="qa"><b>¿Y si todos los tramos duraran 5 minutos?</b></button>
+            <p class="answer">Las dos preguntas coincidirían: minimizar tramos sería minimizar minutos, y la ruta de BFS, multiplicada por 5, sería la de menos minutos. Las respuestas se separan solo porque los minutos difieren entre tramos.</p>
+            <button type="button" class="qa"><b>¿Cuál ruta tomaría un pasajero?</b></button>
+            <p class="answer">Depende de qué le cueste más. Si lo que pesa es el tiempo, la ruta del Cable. Si lo que pesa es bajarse y volverse a subir cinco veces con equipaje, el Expreso. El grafo no decide eso: decide cuál es el mínimo de cada medida.</p>
+            <p class="fine" style="margin-top:14px">Archivo único: HTML, CSS y JavaScript en el mismo documento. Las dos cifras del cierre las calcula el archivo al abrirse, a partir de la misma tabla de tramos que dibuja el mapa.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+  <footer class="nav">
+    <button type="button" id="prev">Anterior</button>
+    <div class="meter" aria-hidden="true"><div id="meter-bar"></div></div>
+    <span class="keys">← → · N P · espacio</span>
+    <span id="pos">1 / 1</span>
+    <button type="button" class="primary" id="next">Siguiente</button>
+  </footer>
+</div>
+<div id="aviso" role="status"></div>
+
+<script>
+"use strict";
+
+/* ===========================================================================
+   TALLER DE GRAFOS · PROBLEMA 4.3 · TRANSBORDOS Y MINUTOS
+   ---------------------------------------------------------------------------
+   Organización del archivo:
+     1. DOMINIO      los datos de la red. Única fuente de verdad.
+     2. GRAFO        construcción de la lista de adyacencia a partir de (1).
+     3. ALGORITMOS   BFS y Dijkstra, en dos versiones: silenciosa y con traza.
+     4. VISTA        un solo dibujante de SVG, compartido por los dos
+                     laboratorios y por las dos miniaturas de la comparación.
+     5. PANELES      el texto lateral de cada laboratorio.
+     6. REPRODUCTOR  controlador genérico de pasos (anterior / siguiente / barra).
+     7. DIAPOSITIVAS navegación del deck y relleno de los textos calculados.
+     8. INVARIANTES  autocomprobación de las reglas del enunciado al abrir.
+
+   Cambiar un minuto, una estación o un tramo en la sección 1 se propaga solo
+   al dibujo, a la lista de adyacencia, a los dos algoritmos y a las cifras
+   del cierre. No hay respuestas escritas a mano.
+   =========================================================================== */
+
+
+/* ======================= 1. DOMINIO ======================= */
+
+/* Autor del taller. Aparece en la ficha de la portada. */
+const AUTOR = "Jesid Alexander López Álvarez";
+
+const RED_NOMBRE = "Red Valle Alto";
+const ORIGEN = "portal";
+const DESTINO = "cantera";
+const LIENZO = { w: 960, h: 560 };
+
+const LINEAS = {
+  troncal:     { nombre: "Línea A · Troncal", color: "#2f7d74", grosor: 9 },
+  expreso:     { nombre: "Línea B · Expreso", color: "#d79a21", grosor: 11 },
+  cable:       { nombre: "Línea C · Cable",   color: "#4a6fc9", grosor: 9 },
+  alimentador: { nombre: "Línea D · Alimentador", color: "#9a9284", grosor: 6 }
+};
+
+/* Las coordenadas son solo para dibujar. El algoritmo no las usa:
+   el peso de un tramo es el número escrito, no el largo del trazo.
+   `etiqueta` fija a mano el rótulo cuando la colocación automática estorba. */
+const ESTACIONES = [
+  { id: "portal",    nombre: "Portal Norte", x:  85, y: 275, papel: "origen" },
+  { id: "aurora",    nombre: "Aurora",       x: 235, y: 150 },
+  { id: "ferias",    nombre: "Las Ferias",   x: 455, y: 160, etiqueta: { dx: 0, dy: 46, anchor: "middle" } },
+  { id: "bulevar",   nombre: "Bulevar",      x: 715, y: 165 },
+  { id: "cantera",   nombre: "La Cantera",   x: 885, y: 320, papel: "destino", etiqueta: { dx: 0, dy: 48, anchor: "middle" } },
+  { id: "cumbre",    nombre: "La Cumbre",    x: 300, y: 280 },
+  { id: "salado",    nombre: "El Salado",    x: 575, y: 275 },
+  { id: "mirador",   nombre: "Mirador",      x: 165, y: 420 },
+  { id: "tejar",     nombre: "El Tejar",     x: 320, y: 470 },
+  { id: "calzada",   nombre: "La Calzada",   x: 495, y: 465 },
+  { id: "acueducto", nombre: "Acueducto",    x: 440, y: 360, etiqueta: { dx: -32, dy: 5, anchor: "end" } },
+  { id: "vivero",    nombre: "El Vivero",    x: 705, y: 425 }
+];
+
+/* `min` son los minutos del tramo: entero positivo.
+   `curva` desvía el trazo (solo estética) para que el Expreso no tape nada. */
+const TRAMOS = [
+  { a: "portal",    b: "aurora",    min:  4, linea: "troncal" },
+  { a: "aurora",    b: "ferias",    min:  6, linea: "troncal" },
+  { a: "ferias",    b: "bulevar",   min:  7, linea: "troncal" },
+  { a: "bulevar",   b: "cantera",   min: 11, linea: "troncal" },
+  { a: "aurora",    b: "bulevar",   min: 19, linea: "expreso", curva: -120 },
+  { a: "portal",    b: "mirador",   min:  3, linea: "cable" },
+  { a: "mirador",   b: "tejar",     min:  4, linea: "cable" },
+  { a: "tejar",     b: "calzada",   min:  5, linea: "cable" },
+  { a: "calzada",   b: "vivero",    min:  4, linea: "cable" },
+  { a: "vivero",    b: "cantera",   min:  5, linea: "cable" },
+  { a: "mirador",   b: "cumbre",    min:  8, linea: "alimentador" },
+  { a: "cumbre",    b: "ferias",    min:  7, linea: "alimentador" },
+  { a: "ferias",    b: "salado",    min:  5, linea: "alimentador" },
+  { a: "salado",    b: "vivero",    min:  6, linea: "alimentador" },
+  { a: "calzada",   b: "acueducto", min:  6, linea: "alimentador" },
+  { a: "acueducto", b: "salado",    min:  5, linea: "alimentador" }
+];
+
+const PSEUDO = {
+  bfs: [
+    "cola ← [origen];  tramos[origen] ← 0",
+    "vistas ← {origen}",
+    "mientras la cola no esté vacía:",
+    "u ← sacar el frente de la cola",
+    "si u es el destino: tramos[u] es el mínimo",
+    "para cada vecina v de u:",
+    "si v es nueva: tramos[v]←tramos[u]+1, encolar v"
+  ],
+  dijkstra: [
+    "marca[origen] ← 0;  el resto ← ∞",
+    "pendientes ← {origen}",
+    "mientras pendientes no esté vacío:",
+    "u ← pendiente con menos minutos; confirmar u",
+    "si u es el destino: reconstruir y terminar",
+    "para cada vecina v sin confirmar:",
+    "si marca[u] + min(u,v) < marca[v]: actualizar"
+  ]
+};
+
+const PALETA = {
+  bfs: { fuerte: "#0f6e68", suave: "#d7f3ef" },
+  dijkstra: { fuerte: "#1a56db", suave: "#dfe8fd" }
+};
+
+
+/* ======================= 2. GRAFO ======================= */
+
+function clave(a, b) { return a < b ? a + "|" + b : b + "|" + a; }
+
+function construirGrafo() {
+  const pos = {};
+  ESTACIONES.forEach(function (e) {
+    if (pos[e.id]) throw new Error("Estación repetida en los datos: " + e.id);
+    pos[e.id] = e;
+  });
+
+  const adj = {};
+  ESTACIONES.forEach(function (e) { adj[e.id] = []; });
+
+  const tramos = [];
+  const vistas = {};
+  TRAMOS.forEach(function (t) {
+    if (!pos[t.a] || !pos[t.b]) throw new Error("Tramo con estación inexistente: " + t.a + " – " + t.b);
+    if (t.a === t.b) throw new Error("Tramo que empieza y termina en " + t.a);
+    const k = clave(t.a, t.b);
+    if (vistas[k]) throw new Error("Tramo duplicado: " + k);
+    vistas[k] = true;
+    const registro = { a: t.a, b: t.b, min: t.min, linea: t.linea, curva: t.curva || 0, clave: k };
+    tramos.push(registro);
+    adj[t.a].push({ hacia: t.b, min: t.min, linea: t.linea, tramo: registro });
+    adj[t.b].push({ hacia: t.a, min: t.min, linea: t.linea, tramo: registro });
+  });
+
+  /* Orden determinista de las vecinas, para que un recorrido no dependa de
+     cómo quedó escrita la tabla. No altera la respuesta: las dos rutas
+     óptimas de esta red son únicas (ver sección 8), así que cualquier orden
+     de vecinas llega al mismo resultado; solo cambia el orden de los pasos. */
+  Object.keys(adj).forEach(function (id) {
+    adj[id].sort(function (x, y) { return pos[x.hacia].nombre.localeCompare(pos[y.hacia].nombre, "es"); });
+  });
+
+  return { pos: pos, adj: adj, tramos: tramos };
+}
+
+const GRAFO = construirGrafo();
+
+function nombre(id) { return GRAFO.pos[id] ? GRAFO.pos[id].nombre : id; }
+function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+function minutosTxt(n) { return !isFinite(n) ? "∞" : n + (n === 1 ? " minuto" : " minutos"); }
+function tramosTxt(n) { return !isFinite(n) ? "∞" : n + (n === 1 ? " tramo" : " tramos"); }
+function pesoEntre(u, v) {
+  const e = GRAFO.adj[u].find(function (x) { return x.hacia === v; });
+  return e ? e.min : NaN;
+}
+function minutosDeRuta(ruta) {
+  if (!ruta) return Infinity;
+  let total = 0;
+  for (let i = 1; i < ruta.length; i++) total += pesoEntre(ruta[i - 1], ruta[i]);
+  return total;
+}
+function rutaDesde(previo, destino, origen) {
+  if (!previo) return null;
+  if (destino !== origen && previo[destino] == null) return null;
+  const ruta = [];
+  const topes = {};
+  let c = destino;
+  while (c != null && !topes[c]) {
+    topes[c] = true;
+    ruta.push(c);
+    if (c === origen) break;
+    c = previo[c];
+  }
+  ruta.reverse();
+  return ruta[0] === origen ? ruta : null;
+}
+function rutaTxt(ruta) { return ruta ? ruta.map(nombre).join(" → ") : "sin camino"; }
+function mismaRuta(a, b) { return !!a && !!b && a.join("|") === b.join("|"); }
+
+
+/* ======================= 3. ALGORITMOS ======================= */
+
+/* --- 3a. Versiones silenciosas: solo la respuesta --- */
+
+function bfsSilencioso(origen, destino) {
+  const tramos = {}; tramos[origen] = 0;
+  const previo = {}; previo[origen] = null;
+  const cola = [origen];
+  while (cola.length) {
+    const u = cola.shift();
+    if (u === destino) break;
+    GRAFO.adj[u].forEach(function (e) {
+      if (e.hacia in tramos) return;
+      tramos[e.hacia] = tramos[u] + 1;
+      previo[e.hacia] = u;
+      cola.push(e.hacia);
+    });
+  }
+  const ruta = rutaDesde(previo, destino, origen);
+  return { ruta: ruta, tramos: ruta ? ruta.length - 1 : Infinity, minutos: minutosDeRuta(ruta) };
+}
+
+function dijkstraSilencioso(origen, destino) {
+  const marca = {};
+  const previo = {};
+  ESTACIONES.forEach(function (e) { marca[e.id] = Infinity; previo[e.id] = null; });
+  marca[origen] = 0;
+  const confirmadas = {};
+  const pendientes = [{ id: origen, d: 0 }];
+  const orden = [];
+  while (pendientes.length) {
+    pendientes.sort(function (x, y) { return x.d - y.d || x.id.localeCompare(y.id); });
+    const it = pendientes.shift();
+    if (confirmadas[it.id] || it.d !== marca[it.id]) continue;
+    confirmadas[it.id] = true;
+    orden.push(it.id);
+    if (it.id === destino) break;
+    GRAFO.adj[it.id].forEach(function (e) {
+      if (confirmadas[e.hacia]) return;
+      const alt = marca[it.id] + e.min;
+      if (alt < marca[e.hacia]) {
+        marca[e.hacia] = alt;
+        previo[e.hacia] = it.id;
+        pendientes.push({ id: e.hacia, d: alt });
+      }
+    });
+  }
+  const ruta = rutaDesde(previo, destino, origen);
+  return {
+    ruta: ruta,
+    minutos: marca[destino],
+    tramos: ruta ? ruta.length - 1 : Infinity,
+    marca: marca,
+    ordenConfirmacion: orden
+  };
+}
+
+/* Mejor camino en minutos entre los extremos de un tramo SIN usar ese tramo.
+   Sirve para medir si un tramo directo "no conviene": si rodear cuesta menos
+   minutos que tomarlo, ese tramo solo gana cuando lo que se cuenta son
+   transbordos. Es exactamente la trampa que hace distintas las dos rutas. */
+function mejorEvitando(tramo) {
+  const marca = {};
+  const previo = {};
+  ESTACIONES.forEach(function (e) { marca[e.id] = Infinity; previo[e.id] = null; });
+  marca[tramo.a] = 0;
+  const confirmadas = {};
+  const pendientes = [{ id: tramo.a, d: 0 }];
+  while (pendientes.length) {
+    pendientes.sort(function (x, y) { return x.d - y.d || x.id.localeCompare(y.id); });
+    const it = pendientes.shift();
+    if (confirmadas[it.id] || it.d !== marca[it.id]) continue;
+    confirmadas[it.id] = true;
+    if (it.id === tramo.b) break;
+    GRAFO.adj[it.id].forEach(function (e) {
+      if (e.tramo.clave === tramo.clave) return;          /* el tramo prohibido */
+      if (confirmadas[e.hacia]) return;
+      const alt = marca[it.id] + e.min;
+      if (alt < marca[e.hacia]) {
+        marca[e.hacia] = alt;
+        previo[e.hacia] = it.id;
+        pendientes.push({ id: e.hacia, d: alt });
+      }
+    });
+  }
+  return { minutos: marca[tramo.b], ruta: rutaDesde(previo, tramo.b, tramo.a) };
+}
+
+const RESP_BFS = bfsSilencioso(ORIGEN, DESTINO);
+const RESP_DIJ = dijkstraSilencioso(ORIGEN, DESTINO);
+
+/* El tramo caro que BFS toma y Dijkstra evita, con su alternativa medida. */
+const TRAMO_CARO = (function () {
+  const candidatos = GRAFO.tramos
+    .filter(function (t) {
+      const enBfs = RESP_BFS.ruta.some(function (id, i) { return i && clave(RESP_BFS.ruta[i - 1], id) === t.clave; });
+      const enDij = RESP_DIJ.ruta.some(function (id, i) { return i && clave(RESP_DIJ.ruta[i - 1], id) === t.clave; });
+      return enBfs && !enDij;
+    })
+    .map(function (t) { return { tramo: t, rodeo: mejorEvitando(t) }; })
+    .filter(function (c) { return isFinite(c.rodeo.minutos) && c.rodeo.minutos < c.tramo.min; })
+    .sort(function (a, b) { return (b.tramo.min - b.rodeo.minutos) - (a.tramo.min - a.rodeo.minutos); });
+  return candidatos[0] || null;
+})();
+
+/* Estaciones que Dijkstra confirma antes del destino y que no quedan en la
+   ruta final: están más cerca del origen que el destino. Material para el
+   relato, calculado y no escrito a mano. */
+const CONFIRMADAS_FUERA = RESP_DIJ.ordenConfirmacion.filter(function (id) {
+  return id !== ORIGEN && id !== DESTINO && RESP_DIJ.ruta.indexOf(id) === -1;
+});
+
+/* --- 3b. Versiones con traza: una lista de fotos del estado --- */
+
+/* Cada paso tiene la misma forma, venga de BFS o de Dijkstra. Así un solo
+   dibujante y un solo panel sirven para los dos (los algoritmos son
+   intercambiables desde el punto de vista de la vista). */
+function fotoVacia(algoritmo) {
+  return {
+    algoritmo: algoritmo || "dijkstra",
+    tipo: "inicio",
+    linea: 0,
+    titulo: "",
+    texto: "",
+    actual: null,
+    foco: null,
+    cerrados: [],
+    estructura: [],
+    marca: {},
+    minutos: null,
+    previo: {},
+    ruta: null,
+    rutaAlterna: null
+  };
+}
+
+function pasosBfs(origen, destino) {
+  const tramos = {}; tramos[origen] = 0;
+  const minutos = {}; minutos[origen] = 0;   /* minutos acumulados por el árbol de BFS */
+  const previo = {}; previo[origen] = null;
+  const cola = [origen];
+  const procesadas = [];
+  const vistas = {}; vistas[origen] = true;
+  const pasos = [];
+
+  function foto(extra) {
+    const base = fotoVacia("bfs");
+    base.cerrados = procesadas.slice();
+    base.estructura = cola.map(function (id) { return { id: id, valor: tramos[id] }; });
+    base.marca = Object.assign({}, tramos);
+    base.minutos = Object.assign({}, minutos);
+    base.previo = Object.assign({}, previo);
+    return Object.assign(base, extra);
+  }
+
+  pasos.push(foto({
+    tipo: "inicio", linea: 1,
+    titulo: "La cola arranca en " + nombre(origen),
+    texto: "BFS no suma minutos: cuenta tramos. " + nombre(origen) + " está a 0 tramos y es la única en la cola. El número del círculo va a ser un conteo."
+  }));
+
+  while (cola.length) {
+    const u = cola.shift();
+    procesadas.push(u);
+    const nuevas = [];
+    const conocidas = [];
+    GRAFO.adj[u].forEach(function (e) { (vistas[e.hacia] ? conocidas : nuevas).push(e); });
+
+    let texto;
+    if (u === origen) {
+      texto = "Sale el origen. Sus vecinas van a quedar a un tramo.";
+    } else if (u === destino) {
+      texto = nombre(destino) + " sale de la cola con " + tramosTxt(tramos[u]) + ". La primera vez que entró ya traía el mínimo, así que ese conteo es la respuesta. Por ese árbol, el viaje suma " + minutosTxt(minutos[u]) + ".";
+    } else {
+      texto = nombre(u) + " sale de la cola con " + tramosTxt(tramos[u]) + ". Ese número ya no cambia.";
+      if (conocidas.length) {
+        texto += " Ya estaban vistas: " + conocidas.map(function (e) { return nombre(e.hacia); }).join(", ") + ". Volver a ellas no reduce el conteo.";
+      }
+    }
+    pasos.push(foto({
+      tipo: "saca", linea: u === destino ? 5 : 4, actual: u,
+      titulo: u === destino ? "El destino sale de la cola" : "Sale " + nombre(u),
+      texto: texto
+    }));
+    if (u === destino) break;
+
+    nuevas.forEach(function (e) {
+      vistas[e.hacia] = true;
+      tramos[e.hacia] = tramos[u] + 1;
+      minutos[e.hacia] = minutos[u] + e.min;
+      previo[e.hacia] = u;
+      cola.push(e.hacia);
+      let t = nombre(e.hacia) + " entra al fondo de la cola, a " + tramosTxt(tramos[e.hacia]) + ". Por este árbol acumula " + minutosTxt(minutos[e.hacia]) + ".";
+      if (e.linea === "expreso") {
+        t += " El tramo es el Expreso: para BFS cuenta 1, igual que un tramo de 3 minutos, aunque dure " + minutosTxt(e.min) + ".";
+      }
+      if (e.hacia === destino) {
+        t += " Es la primera vez en el destino: en tramos esta cifra ya es mínima, en minutos puede no serlo.";
+      }
+      pasos.push(foto({
+        tipo: "revisa", linea: 7, actual: u,
+        foco: { de: u, a: e.hacia, mejora: true },
+        titulo: "Encolo " + nombre(e.hacia),
+        texto: t
+      }));
+    });
+  }
+
+  const ruta = rutaDesde(previo, destino, origen);
+  const fija = foto({});
+  const difieren = !mismaRuta(ruta, RESP_DIJ.ruta);
+
+  pasos.push(Object.assign({}, fija, {
+    tipo: "cierre", linea: 5, actual: destino,
+    titulo: "Mínimo de transbordos: " + tramosTxt(ruta.length - 1),
+    texto: "BFS termina en el conteo. Ahora se arma la ruta saltando a la estación previa de cada una, desde " + nombre(destino) + " hasta " + nombre(origen) + "."
+  }));
+  ruta.forEach(function (id, k) {
+    if (k === 0) return;
+    pasos.push(Object.assign({}, fija, {
+      tipo: "traza", linea: 5, actual: id, ruta: ruta.slice(0, k + 1),
+      titulo: nombre(ruta[k - 1]) + " → " + nombre(id),
+      texto: "La previa de " + nombre(id) + " es " + nombre(ruta[k - 1]) + ". Ese tramo entra en la ruta y dura " + minutosTxt(pesoEntre(ruta[k - 1], id)) + ". Van " + tramosTxt(k) + " y " + minutosTxt(minutos[id]) + "."
+    }));
+  });
+  pasos.push(Object.assign({}, fija, {
+    tipo: "resumen", linea: 5, ruta: ruta, rutaAlterna: difieren ? RESP_DIJ.ruta : null,
+    titulo: tramosTxt(ruta.length - 1) + " · " + minutosTxt(minutos[destino]),
+    texto: rutaTxt(ruta) + ". Es el mínimo de transbordos. " + (difieren
+      ? "En minutos no es la mejor: la ruta de " + minutosTxt(RESP_DIJ.minutos) + " es " + rutaTxt(RESP_DIJ.ruta) + ", con " + tramosTxt(RESP_DIJ.tramos) + ". Son " + (minutos[destino] - RESP_DIJ.minutos) + " minutos de diferencia."
+      : "En esta red, menos transbordos y menos minutos coinciden.")
+  }));
+  return pasos;
+}
+
+function pasosDijkstra(origen, destino) {
+  const marca = {};
+  const previo = {};
+  ESTACIONES.forEach(function (e) { marca[e.id] = Infinity; previo[e.id] = null; });
+  marca[origen] = 0;
+  const confirmadas = {};
+  const orden = [];
+  const pendientes = [{ id: origen, d: 0 }];
+  const pasos = [];
+
+  function listaPendientes() {
+    return Object.keys(marca)
+      .filter(function (id) { return isFinite(marca[id]) && !confirmadas[id]; })
+      .map(function (id) { return { id: id, valor: marca[id] }; })
+      .sort(function (x, y) { return x.valor - y.valor || x.id.localeCompare(y.id); });
+  }
+
+  function foto(extra) {
+    const base = fotoVacia("dijkstra");
+    base.cerrados = orden.slice();
+    base.estructura = listaPendientes();
+    base.marca = Object.assign({}, marca);
+    base.previo = Object.assign({}, previo);
+    return Object.assign(base, extra);
+  }
+
+  pasos.push(foto({
+    tipo: "inicio", linea: 1,
+    titulo: "Todo en infinito, menos el origen",
+    texto: nombre(origen) + " queda en 0 minutos. Las demás estaciones todavía no tienen ningún camino conocido, así que su marca es infinito."
+  }));
+
+  while (pendientes.length) {
+    pendientes.sort(function (x, y) { return x.d - y.d || x.id.localeCompare(y.id); });
+    const it = pendientes.shift();
+    if (confirmadas[it.id] || it.d !== marca[it.id]) continue;
+    confirmadas[it.id] = true;
+    orden.push(it.id);
+    const rival = listaPendientes()[0];
+
+    let texto;
+    if (it.id === origen) {
+      texto = "El origen está a 0 minutos de sí mismo: es la pendiente más cercana. Lo confirmo y empiezo a probar sus tramos.";
+    } else if (it.id === destino) {
+      texto = nombre(destino) + " es ahora la pendiente con menos minutos, " + minutosTxt(marca[destino]) + ". Como ningún tramo resta minutos, esa marca ya no puede bajar: es la respuesta.";
+    } else if (rival) {
+      texto = nombre(it.id) + " es la pendiente más cercana, a " + minutosTxt(marca[it.id]) + ". " + nombre(rival.id) + " espera, a " + minutosTxt(rival.valor) + ".";
+    } else {
+      texto = nombre(it.id) + " era la última pendiente. Su marca de " + minutosTxt(marca[it.id]) + " queda fija.";
+    }
+    pasos.push(foto({
+      tipo: "saca", linea: it.id === destino ? 5 : 4, actual: it.id,
+      titulo: "Confirmo " + nombre(it.id),
+      texto: texto
+    }));
+    if (it.id === destino) break;
+
+    GRAFO.adj[it.id].forEach(function (e) {
+      if (confirmadas[e.hacia]) return;
+      const antes = marca[e.hacia];
+      const alt = marca[it.id] + e.min;
+      const mejora = alt < antes;
+      if (mejora) {
+        marca[e.hacia] = alt;
+        previo[e.hacia] = it.id;
+        pendientes.push({ id: e.hacia, d: alt });
+      }
+      const suma = marca[it.id] + " + " + e.min + " = " + alt;
+      let t;
+      if (mejora && !isFinite(antes)) {
+        t = nombre(e.hacia) + " no tenía camino. Por " + nombre(it.id) + ": " + suma + " minutos. Entra a pendientes.";
+      } else if (mejora) {
+        t = nombre(e.hacia) + " baja de " + minutosTxt(antes) + " a " + minutosTxt(alt) + " (" + suma + "). Su previa ahora es " + nombre(it.id) + ".";
+      } else {
+        t = nombre(e.hacia) + " no mejora: " + suma + " minutos, y ya tenía un camino de " + minutosTxt(antes) + ". El tramo se descarta.";
+      }
+      if (e.linea === "expreso") {
+        t += " Es el Expreso: un solo tramo, pero " + minutosTxt(e.min) + ". Dijkstra sí ve ese precio.";
+      }
+      if (mejora && e.hacia === destino) {
+        t += " Ya hay una marca en el destino, pero todavía no está confirmada: una pendiente más cercana podría abrir un camino mejor.";
+      }
+      pasos.push(foto({
+        tipo: "revisa", linea: 7, actual: it.id,
+        foco: { de: it.id, a: e.hacia, mejora: mejora },
+        titulo: (mejora ? "Mejora " : "No mejora ") + nombre(e.hacia),
+        texto: t
+      }));
+    });
+  }
+
+  const ruta = rutaDesde(previo, destino, origen);
+  const fija = foto({});
+  const difieren = !mismaRuta(ruta, RESP_BFS.ruta);
+
+  /* Resalta el momento en que se confirma una estación que no quedará en la
+     ruta: es la idea de que la búsqueda crece por distancia al origen.
+     Entre las candidatas se prefiere una que sí esté en la ruta de BFS: es la
+     que hace visible el contraste —el otro algoritmo pasa por ahí y este la
+     confirma y aun así la descarta—. Si no hay, se toma la última. */
+  if (CONFIRMADAS_FUERA.length) {
+    const enRutaBfs = CONFIRMADAS_FUERA.filter(function (id) { return RESP_BFS.ruta.indexOf(id) !== -1; });
+    const quien = enRutaBfs.length
+      ? enRutaBfs[enRutaBfs.length - 1]
+      : CONFIRMADAS_FUERA[CONFIRMADAS_FUERA.length - 1];
+    const paso = pasos.filter(function (p) { return p.tipo === "saca" && p.actual === quien; })[0];
+    if (paso) {
+      paso.texto += " Esta estación no va a quedar en la ruta final: está a " + minutosTxt(RESP_DIJ.marca[quien]) +
+        " del origen, menos que el destino, así que se confirma antes. Dijkstra llena un radio de minutos; no camina apuntando al destino.";
+      if (RESP_BFS.ruta.indexOf(quien) !== -1) {
+        paso.texto += " Y es por donde pasa la ruta de menos transbordos: aquí se ve que confirmarla no la mete en el camino más corto en minutos.";
+      }
+    }
+  }
+
+  pasos.push(Object.assign({}, fija, {
+    tipo: "cierre", linea: 5, actual: destino,
+    titulo: "Toca reconstruir",
+    texto: "El destino ya es definitivo, a " + minutosTxt(marca[destino]) + ". La ruta se arma saltando a la estación previa de cada una, desde " + nombre(destino) + " hasta " + nombre(origen) + "."
+  }));
+  ruta.forEach(function (id, k) {
+    if (k === 0) return;
+    pasos.push(Object.assign({}, fija, {
+      tipo: "traza", linea: 5, actual: id, ruta: ruta.slice(0, k + 1),
+      titulo: nombre(ruta[k - 1]) + " → " + nombre(id),
+      texto: "La previa de " + nombre(id) + " es " + nombre(ruta[k - 1]) + ". Ese tramo dura " + minutosTxt(pesoEntre(ruta[k - 1], id)) + " y deja a " + nombre(id) + " en " + minutosTxt(marca[id]) + "."
+    }));
+  });
+  pasos.push(Object.assign({}, fija, {
+    tipo: "resumen", linea: 5, ruta: ruta, rutaAlterna: difieren ? RESP_BFS.ruta : null,
+    titulo: "Menos minutos: " + minutosTxt(marca[destino]),
+    texto: rutaTxt(ruta) + ". " + minutosTxt(marca[destino]) + " en " + tramosTxt(ruta.length - 1) + ". " + (difieren
+      ? "BFS habría ido por " + rutaTxt(RESP_BFS.ruta) + ": " + tramosTxt(RESP_BFS.tramos) + ", dos menos, pero " + minutosTxt(RESP_BFS.minutos) + "."
+      : "En esta red, menos minutos y menos transbordos coinciden.")
+  }));
+  return pasos;
+}
+
+
+/* ======================= 4. VISTA ======================= */
+
+/* Geometría de un tramo: el trazo, el punto donde va el rótulo de minutos y
+   la normal, que se usa también para separar el rótulo de la línea. */
+function geometriaTramo(t) {
+  const pa = GRAFO.pos[t.a];
+  const pb = GRAFO.pos[t.b];
+  const dx = pb.x - pa.x;
+  const dy = pb.y - pa.y;
+  const largo = Math.hypot(dx, dy) || 1;
+  const nx = -dy / largo;
+  const ny = dx / largo;
+  const mx = (pa.x + pb.x) / 2;
+  const my = (pa.y + pb.y) / 2;
+  const curva = t.curva || 0;
+  if (!curva) {
+    return { d: "M " + pa.x + " " + pa.y + " L " + pb.x + " " + pb.y, rx: mx + nx * 15, ry: my + ny * 15 + 4 };
+  }
+  const cx = mx + nx * curva;
+  const cy = my + ny * curva;
+  /* punto medio real de la cuadrática: B(0.5) = (P0 + 2C + P2) / 4 */
+  const ex = (pa.x + 2 * cx + pb.x) / 4;
+  const ey = (pa.y + 2 * cy + pb.y) / 4;
+  const sep = curva < 0 ? -16 : 16;
+  return {
+    d: "M " + pa.x + " " + pa.y + " Q " + cx.toFixed(1) + " " + cy.toFixed(1) + " " + pb.x + " " + pb.y,
+    rx: ex + nx * sep, ry: ey + ny * sep + 4
+  };
+}
+
+const GEOMETRIA = {};
+GRAFO.tramos.forEach(function (t) { GEOMETRIA[t.clave] = geometriaTramo(t); });
+
+/* Colocación del rótulo de cada estación: se busca el mayor hueco angular
+   entre sus tramos y se pone el nombre en la mitad de ese hueco. Así el
+   rótulo nunca se acuesta sobre una línea, y se recalcula solo si se cambian
+   los datos. `etiqueta` en ESTACIONES permite forzarlo a mano. */
+const ANCHO_CARACTER = 7.6;   /* ancho medio de un carácter a 14 px */
+const MARGEN = 12;            /* respiro contra el borde del lienzo */
+const BANDA_PIE = 34;         /* franja inferior reservada para el pie */
+
+function anchoRotulo(texto) { return texto.length * ANCHO_CARACTER; }
+
+function extremosRotulo(x, anchor, ancho) {
+  if (anchor === "start") return [x, x + ancho];
+  if (anchor === "end") return [x - ancho, x];
+  return [x - ancho / 2, x + ancho / 2];
+}
+
+function calcularRotulos() {
+  const salida = {};
+  ESTACIONES.forEach(function (e) {
+    if (e.etiqueta) {
+      salida[e.id] = { x: e.x + e.etiqueta.dx, y: e.y + e.etiqueta.dy, anchor: e.etiqueta.anchor };
+      return;
+    }
+    const angulos = GRAFO.adj[e.id].map(function (v) {
+      const p = GRAFO.pos[v.hacia];
+      return Math.atan2(p.y - e.y, p.x - e.x);
+    }).sort(function (x, y) { return x - y; });
+
+    let mejor = { ini: -Math.PI / 2, ancho: 0 };
+    for (let i = 0; i < angulos.length; i++) {
+      const a = angulos[i];
+      const b = (i + 1 < angulos.length) ? angulos[i + 1] : angulos[0] + Math.PI * 2;
+      if (b - a > mejor.ancho) mejor = { ini: a, ancho: b - a };
+    }
+    const ang = mejor.ini + mejor.ancho / 2;
+    const r = 40;
+    let dx = Math.cos(ang) * r;
+    const dy = Math.sin(ang) * r;
+    let anchor = dx > 14 ? "start" : (dx < -14 ? "end" : "middle");
+    const ancho = anchoRotulo(e.nombre);
+
+    /* No basta con mantener el punto de anclaje dentro del lienzo: lo que se
+       sale es el texto. Se mide su extensión real y, si no cabe, el rótulo
+       pasa al lado opuesto de la estación antes de recortar. */
+    let x = e.x + dx;
+    let ext = extremosRotulo(x, anchor, ancho);
+    if (ext[0] < MARGEN || ext[1] > LIENZO.w - MARGEN) {
+      dx = -dx;
+      anchor = anchor === "start" ? "end" : (anchor === "end" ? "start" : "middle");
+      x = e.x + dx;
+      ext = extremosRotulo(x, anchor, ancho);
+      if (ext[0] < MARGEN) x += MARGEN - ext[0];
+      else if (ext[1] > LIENZO.w - MARGEN) x -= ext[1] - (LIENZO.w - MARGEN);
+    }
+
+    const ajuste = anchor === "middle" ? (dy < 0 ? -4 : 12) : 5;
+    const alto = e.papel ? 16 : 0;   /* las de origen y destino llevan segunda línea */
+    salida[e.id] = {
+      x: x,
+      y: Math.min(LIENZO.h - BANDA_PIE - alto, Math.max(26, e.y + dy + ajuste)),
+      anchor: anchor
+    };
+  });
+  return salida;
+}
+
+const ROTULOS = calcularRotulos();
+
+function valorEnCirculo(id, paso) {
+  const v = paso.marca ? paso.marca[id] : undefined;
+  if (v == null || !isFinite(v)) return "∞";
+  return String(v);
+}
+
+/* Un único dibujante para los dos laboratorios, la portada, el mapa de la
+   red y las dos miniaturas de la comparación. `op` ajusta el detalle. */
+function dibujarRed(svg, paso, op) {
+  if (!svg) return;
+  op = Object.assign({ marcas: true, titulo: null, pie: null, compacto: false }, op || {});
+  const tema = PALETA[paso.algoritmo] || PALETA.dijkstra;
+  const cerradas = {};
+  (paso.cerrados || []).forEach(function (id) { cerradas[id] = true; });
+  const esperando = {};
+  (paso.estructura || []).forEach(function (x) { esperando[x.id] = true; });
+
+  const arbol = {};
+  Object.keys(paso.previo || {}).forEach(function (id) {
+    if (paso.previo[id]) arbol[clave(paso.previo[id], id)] = true;
+  });
+  const enRuta = {};
+  (paso.ruta || []).forEach(function (id, i) { if (i) enRuta[clave(paso.ruta[i - 1], id)] = true; });
+  const alterna = {};
+  (paso.rutaAlterna || []).forEach(function (id, i) {
+    if (!i) return;
+    const k = clave(paso.rutaAlterna[i - 1], id);
+    if (!enRuta[k]) alterna[k] = true;
+  });
+  const focoClave = paso.foco ? clave(paso.foco.de, paso.foco.a) : null;
+
+  const p = [];
+  p.push('<rect width="' + LIENZO.w + '" height="' + LIENZO.h + '" fill="#fffdf8"/>');
+
+  /* 1. trazos base, con el color de su línea */
+  GRAFO.tramos.forEach(function (t) {
+    const g = GEOMETRIA[t.clave];
+    const L = LINEAS[t.linea] || LINEAS.alimentador;
+    p.push('<path d="' + g.d + '" fill="none" stroke="#ffffff" stroke-width="' + (L.grosor + 5) + '" stroke-linecap="round"/>');
+    p.push('<path d="' + g.d + '" fill="none" stroke="' + L.color + '" stroke-width="' + L.grosor + '" stroke-linecap="round" opacity="0.55"/>');
+  });
+
+  /* 2. capas de estado, de abajo hacia arriba */
+  function capa(claves, color, ancho, guion, opacidad) {
+    Object.keys(claves).forEach(function (k) {
+      const g = GEOMETRIA[k];
+      if (!g) return;
+      p.push('<path d="' + g.d + '" fill="none" stroke="' + color + '" stroke-width="' + ancho +
+        '" stroke-linecap="round"' + (guion ? ' stroke-dasharray="' + guion + '"' : "") +
+        (opacidad ? ' opacity="' + opacidad + '"' : "") + '/>');
+    });
+  }
+  capa(alterna, paso.algoritmo === "bfs" ? PALETA.dijkstra.fuerte : PALETA.bfs.fuerte, 6, "9 7", 0.9);
+  capa(arbol, tema.fuerte, 4, null, 0.9);
+  if (Object.keys(enRuta).length) {
+    capa(enRuta, "#14387f", 14, null, 1);
+    capa(enRuta, tema.fuerte, 8, null, 1);
+  }
+  if (focoClave && GEOMETRIA[focoClave]) {
+    capa(
+      (function () { const o = {}; o[focoClave] = true; return o; })(),
+      paso.foco.mejora ? "#188038" : "#c0392b", 7, paso.foco.mejora ? null : "6 6", 1
+    );
+  }
+
+  /* 3. rótulos de minutos: el peso va escrito sobre la arista */
+  GRAFO.tramos.forEach(function (t) {
+    const g = GEOMETRIA[t.clave];
+    const destacado = enRuta[t.clave] || focoClave === t.clave;
+    p.push('<text x="' + g.rx.toFixed(1) + '" y="' + g.ry.toFixed(1) + '" text-anchor="middle" font-size="' +
+      (destacado ? 15 : 13.5) + '" font-weight="' + (destacado ? 700 : 600) +
+      '" fill="' + (destacado ? "#14387f" : "#4a443b") + '" stroke="#fffdf8" stroke-width="4.5" paint-order="stroke">' +
+      t.min + '</text>');
+  });
+
+  /* 4. estaciones */
+  ESTACIONES.forEach(function (e) {
+    const esActual = paso.actual === e.id;
+    const esCerrada = !!cerradas[e.id];
+    const esEspera = !!esperando[e.id] && !esCerrada;
+    let relleno = "#ffffff";
+    let tinta = "#8a8276";
+    let borde = "#6b6558";
+    if (esEspera) { relleno = "#f6e2a8"; tinta = "#1c1915"; borde = "#b5810b"; }
+    if (esCerrada) { relleno = "#1e3a5f"; tinta = "#ffffff"; borde = "#1e3a5f"; }
+    if (esActual) { relleno = "#c2410c"; tinta = "#ffffff"; borde = "#9a3412"; }
+
+    if (e.papel === "origen") p.push('<circle cx="' + e.x + '" cy="' + e.y + '" r="27" fill="none" stroke="#188038" stroke-width="3"/>');
+    if (e.papel === "destino") p.push('<circle cx="' + e.x + '" cy="' + e.y + '" r="27" fill="none" stroke="#c0392b" stroke-width="3"/>');
+    p.push('<circle cx="' + e.x + '" cy="' + e.y + '" r="19" fill="' + relleno + '" stroke="' + borde + '" stroke-width="2"/>');
+    if (op.marcas) {
+      p.push('<text x="' + e.x + '" y="' + (e.y + 5) + '" text-anchor="middle" font-size="13" font-weight="700" fill="' + tinta + '">' +
+        esc(valorEnCirculo(e.id, paso)) + '</text>');
+    } else {
+      p.push('<circle cx="' + e.x + '" cy="' + e.y + '" r="6" fill="' + (e.papel ? borde : "#6b6558") + '"/>');
+    }
+    const r = ROTULOS[e.id];
+    p.push('<text x="' + r.x.toFixed(0) + '" y="' + r.y.toFixed(0) + '" text-anchor="' + r.anchor +
+      '" font-size="14" font-weight="650" fill="#231f1a" stroke="#fffdf8" stroke-width="4.5" paint-order="stroke">' +
+      esc(e.nombre) + '</text>');
+    if (e.papel) {
+      p.push('<text x="' + r.x.toFixed(0) + '" y="' + (r.y + 16).toFixed(0) + '" text-anchor="' + r.anchor +
+        '" font-size="11.5" fill="' + (e.papel === "origen" ? "#188038" : "#c0392b") +
+        '" stroke="#fffdf8" stroke-width="4" paint-order="stroke">' + e.papel + '</text>');
+    }
+  });
+
+  /* 5. título y pie del lienzo */
+  if (op.titulo) {
+    p.push('<text x="24" y="30" font-size="14" font-weight="650" fill="#4a443b">' + esc(op.titulo) + '</text>');
+  }
+  p.push('<text x="24" y="' + (LIENZO.h - 14) + '" font-size="12.5" fill="#8a8276">' +
+    esc(op.pie || "El número sobre cada tramo son sus minutos. El largo del trazo en pantalla no es el peso.") + '</text>');
+
+  svg.innerHTML = p.join("");
+}
+
+
+/* ======================= 5. PANELES ======================= */
+
+function rellenarPseudo(ol, lineas) {
+  ol.innerHTML = lineas.map(function (l, i) {
+    return '<li data-line="' + (i + 1) + '"><code>' + esc(l) + '</code></li>';
+  }).join("");
+}
+
+function marcarPseudo(ol, linea) {
+  Array.prototype.forEach.call(ol.querySelectorAll("li"), function (li) {
+    li.classList.toggle("on", Number(li.dataset.line) === linea);
+  });
+}
+
+function renderLab(raiz, svg, paso) {
+  raiz.querySelector("[data-step-title]").textContent = paso.titulo;
+  raiz.querySelector("[data-step-text]").textContent = paso.texto;
+  marcarPseudo(raiz.querySelector("[data-code]"), paso.linea);
+
+  /* cifra grande: el estado de la respuesta en este paso */
+  const stat = raiz.querySelector("[data-stat]");
+  const v = paso.marca[DESTINO];
+  if (paso.algoritmo === "bfs") {
+    const mins = paso.minutos ? paso.minutos[DESTINO] : Infinity;
+    stat.innerHTML = !isFinite(v)
+      ? '∞<small>transbordos hasta el destino</small>'
+      : esc(tramosTxt(v)) + '<small>' + (isFinite(mins) ? esc(minutosTxt(mins)) + " por ese árbol" : "") + '</small>';
+  } else {
+    const confirmado = (paso.cerrados || []).indexOf(DESTINO) !== -1;
+    stat.innerHTML = !isFinite(v)
+      ? '∞<small>el destino todavía no tiene camino</small>'
+      : esc(minutosTxt(v)) + '<small>' + (confirmado ? "confirmados" : "mejor marca, todavía puede bajar") + '</small>';
+  }
+
+  /* estructura de datos: cola de BFS o pendientes de Dijkstra */
+  const caja = raiz.querySelector("[data-struct]");
+  if (!paso.estructura.length) {
+    caja.innerHTML = '<p class="vacia">vacía</p>';
+  } else {
+    caja.innerHTML = paso.estructura.map(function (x, i) {
+      const texto = paso.algoritmo === "bfs" ? tramosTxt(x.valor) : minutosTxt(x.valor);
+      return '<div class="fr' + (i === 0 ? " next" : "") + '"><span>' + esc(nombre(x.id)) + '</span><b>' + esc(texto) + '</b></div>';
+    }).join("");
+  }
+
+  /* ruta parcial conocida hacia el destino */
+  const rutaParcial = paso.ruta || rutaDesde(paso.previo, DESTINO, ORIGEN);
+  const linea = raiz.querySelector("[data-path]");
+  if (rutaParcial) {
+    const costo = paso.algoritmo === "bfs"
+      ? tramosTxt(rutaParcial.length - 1) + " · " + minutosTxt(minutosDeRuta(rutaParcial))
+      : minutosTxt(minutosDeRuta(rutaParcial)) + " · " + tramosTxt(rutaParcial.length - 1);
+    linea.textContent = rutaTxt(rutaParcial) + " — " + costo;
+  } else {
+    linea.textContent = "Todavía no hay camino conocido hasta " + nombre(DESTINO) + ".";
+  }
+
+  dibujarRed(svg, paso, {
+    titulo: paso.algoritmo === "bfs" ? "BFS · el círculo muestra transbordos" : "Dijkstra · el círculo muestra minutos"
+  });
+}
+
+
+/* ======================= 6. REPRODUCTOR ======================= */
+
+function montarReproductor(raiz, construir, render) {
+  let pasos = [];
+  let i = 0;
+  let timer = null;
+  const barra = raiz.querySelector("[data-range]");
+  const cuenta = raiz.querySelector("[data-count]");
+  const btnPlay = raiz.querySelector("[data-play]");
+
+  function detener() {
+    if (timer) clearInterval(timer);
+    timer = null;
+    btnPlay.textContent = "Reproducir";
+  }
+
+  function mostrar(n) {
+    if (!pasos.length) return;
+    i = Math.max(0, Math.min(pasos.length - 1, n));
+    barra.max = String(pasos.length - 1);
+    barra.value = String(i);
+    cuenta.textContent = (i + 1) + " / " + pasos.length;
+    raiz.querySelector("[data-prev]").disabled = i === 0;
+    raiz.querySelector("[data-next]").disabled = i === pasos.length - 1;
+    render(pasos[i]);
+  }
+
+  function reconstruir() {
+    detener();
+    pasos = construir();
+    mostrar(0);
+  }
+
+  raiz.querySelector("[data-prev]").addEventListener("click", function () { detener(); mostrar(i - 1); });
+  raiz.querySelector("[data-next]").addEventListener("click", function () { detener(); mostrar(i + 1); });
+  raiz.querySelector("[data-first]").addEventListener("click", function () { detener(); mostrar(0); });
+  raiz.querySelector("[data-last]").addEventListener("click", function () { detener(); mostrar(pasos.length - 1); });
+
+  const btnHito = raiz.querySelector("[data-mark]");
+  if (btnHito) {
+    btnHito.addEventListener("click", function () {
+      detener();
+      let n = i + 1;
+      while (n < pasos.length && ["saca", "cierre", "traza", "resumen"].indexOf(pasos[n].tipo) === -1) n += 1;
+      mostrar(Math.min(n, pasos.length - 1));
+    });
+  }
+  btnPlay.addEventListener("click", function () {
+    if (timer) { detener(); return; }
+    if (i >= pasos.length - 1) mostrar(0);
+    btnPlay.textContent = "Pausa";
+    timer = setInterval(function () {
+      if (i >= pasos.length - 1) { detener(); return; }
+      mostrar(i + 1);
+    }, 1100);
+  });
+  barra.addEventListener("input", function () { detener(); mostrar(Number(barra.value)); });
+
+  return {
+    reconstruir: reconstruir,
+    detener: detener,
+    paso: function (d) { detener(); mostrar(i + d); },
+    alternar: function () { btnPlay.click(); }
+  };
+}
+
+
+/* ======================= 7. DIAPOSITIVAS ======================= */
+
+const reproductores = {};
+let diapos = [];
+let actual = 0;
+
+function reproductorActivo() {
+  const n = diapos[actual] && diapos[actual].dataset.player;
+  return n ? reproductores[n] : null;
+}
+
+function irA(n) {
+  Object.keys(reproductores).forEach(function (k) { reproductores[k].detener(); });
+  actual = Math.max(0, Math.min(diapos.length - 1, n));
+  diapos.forEach(function (d, k) { d.classList.toggle("active", k === actual); });
+  document.getElementById("slideName").textContent = diapos[actual].dataset.title || "";
+  document.getElementById("pos").textContent = (actual + 1) + " / " + diapos.length;
+  document.getElementById("meter-bar").style.width = ((actual + 1) / diapos.length * 100) + "%";
+  document.getElementById("prev").disabled = actual === 0;
+  document.getElementById("next").disabled = actual === diapos.length - 1;
+  diapos[actual].scrollTop = 0;
+}
+
+function pintarLeyendaLineas() {
+  const cuenta = {};
+  GRAFO.tramos.forEach(function (t) { cuenta[t.linea] = (cuenta[t.linea] || 0) + 1; });
+  document.getElementById("leyenda-lineas").innerHTML = Object.keys(LINEAS).map(function (k) {
+    const L = LINEAS[k];
+    return '<span><i style="background:' + L.color + '"></i>' + esc(L.nombre) + ' · ' + tramosTxt(cuenta[k] || 0) + '</span>';
+  }).join("");
+}
+
+function pintarAdyacencia() {
+  const enBfs = {}; RESP_BFS.ruta.forEach(function (id) { enBfs[id] = true; });
+  const enDij = {}; RESP_DIJ.ruta.forEach(function (id) { enDij[id] = true; });
+
+  const filas = ESTACIONES.slice().sort(function (a, b) {
+    return a.nombre.localeCompare(b.nombre, "es");
+  }).map(function (e) {
+    const vecinas = GRAFO.adj[e.id].map(function (v) {
+      return '<span class="vec"><b>' + esc(nombre(v.hacia)) + '</b> <em>' + v.min + ' min</em></span>';
+    }).join("");
+    const grado = GRAFO.adj[e.id].length;
+    const clase = (enBfs[e.id] && enDij[e.id]) ? "ruta-ambas"
+      : (enDij[e.id] ? "ruta-dij" : (enBfs[e.id] ? "ruta-bfs" : ""));
+    const papel = e.papel ? ' <em class="muted">· ' + e.papel + '</em>' : "";
+    return '<tr class="' + clase + '"><th scope="row">' + esc(e.nombre) + papel +
+      '<small>' + tramosTxt(grado) + '</small></th><td>' + vecinas + '</td></tr>';
+  });
+  document.getElementById("tabla-adyacencia").innerHTML = filas.join("");
+
+  const minutos = GRAFO.tramos.map(function (t) { return t.min; });
+  document.getElementById("resumen-adj").textContent =
+    ESTACIONES.length + " estaciones · " + GRAFO.tramos.length + " tramos · cada tramo aparece en las dos estaciones que une · " +
+    "minutos entre " + Math.min.apply(null, minutos) + " y " + Math.max.apply(null, minutos) + ", todos positivos.";
+}
+
+function tarjetaMarcador(valor, etiqueta) {
+  return '<div><b>' + esc(valor) + '</b><small>' + esc(etiqueta) + '</small></div>';
+}
+
+/* Textos que describen el tramo caro. Las cifras salen del cálculo, no del
+   teclado: si se cambia un minuto en los datos, la frase cambia con él. */
+function pintarTrampa() {
+  const hero = document.getElementById("hero-explica");
+  const t1 = document.getElementById("trampa-1");
+  const t2 = document.getElementById("trampa-2");
+  if (!TRAMO_CARO) {
+    hero.textContent = "En esta red las dos preguntas tienen la misma respuesta: ningún tramo largo acorta el conteo.";
+    t1.textContent = "No hay en esta red un tramo que gane en conteo y pierda en minutos.";
+    t2.textContent = "";
+    return;
+  }
+  const t = TRAMO_CARO.tramo;
+  const rodeo = TRAMO_CARO.rodeo;
+  const saltadas = rodeo.ruta.slice(1, -1).map(nombre);
+  const directo = nombre(t.a) + " – " + nombre(t.b);
+
+  hero.textContent = "No son la misma. La de menos transbordos pasa por el Expreso: un servicio directo de " + directo +
+    (saltadas.length ? ", sin parar en " + saltadas.join(" ni ") : "") + ", que cuesta " + minutosTxt(t.min) +
+    " cuando el mismo trayecto por la Troncal cuesta " + rodeo.minutos + ". La de menos minutos usa más tramos, todos cortos.";
+
+  t1.innerHTML = "El tramo <b>" + esc(directo) + "</b> es el Expreso: un servicio directo por una vía más larga. Cuesta <b>" +
+    esc(minutosTxt(t.min)) + "</b>.";
+  t2.innerHTML = "Rodeando por " + esc(rodeo.ruta.map(nombre).join(" → ")) + " son <b>" +
+    rodeo.ruta.slice(1).map(function (id, k) { return pesoEntre(rodeo.ruta[k], id); }).join(" + ") +
+    " = " + rodeo.minutos + " minutos</b>, menos que tomarlo. Pero son " + esc(tramosTxt(rodeo.ruta.length - 1)) + " en vez de uno.";
+}
+
+function pintarMarcadores() {
+  const html =
+    tarjetaMarcador(tramosTxt(RESP_BFS.tramos), "mínimo de transbordos (BFS)") +
+    tarjetaMarcador(minutosTxt(RESP_BFS.minutos), "lo que tarda esa ruta") +
+    tarjetaMarcador(minutosTxt(RESP_DIJ.minutos), "mínimo de minutos (Dijkstra)") +
+    tarjetaMarcador(tramosTxt(RESP_DIJ.tramos), "tramos de esa ruta");
+  document.getElementById("marcador-previo").innerHTML = html;
+  document.getElementById("marcador-final").innerHTML = html +
+    tarjetaMarcador((RESP_BFS.minutos - RESP_DIJ.minutos) + " min", "lo que cuesta ahorrar " + tramosTxt(RESP_BFS.tramos === RESP_DIJ.tramos ? 0 : RESP_DIJ.tramos - RESP_BFS.tramos));
+}
+
+function pintarComparacion() {
+  const difieren = !mismaRuta(RESP_BFS.ruta, RESP_DIJ.ruta);
+
+  document.getElementById("cmp-titulo").textContent = difieren
+    ? "Dos preguntas, dos rutas: " + tramosTxt(RESP_BFS.tramos) + " o " + minutosTxt(RESP_DIJ.minutos) + "."
+    : "En esta red las dos preguntas tienen la misma respuesta.";
+
+  const fotoB = fotoVacia("bfs");
+  fotoB.ruta = RESP_BFS.ruta;
+  fotoB.rutaAlterna = difieren ? RESP_DIJ.ruta : null;
+  dibujarRed(document.getElementById("cmp-bfs"), fotoB, {
+    marcas: false, titulo: "BFS · menos transbordos",
+    pie: "Línea gruesa: la ruta de BFS. Línea a trazos: la de Dijkstra."
+  });
+
+  const fotoD = fotoVacia("dijkstra");
+  fotoD.ruta = RESP_DIJ.ruta;
+  fotoD.rutaAlterna = difieren ? RESP_BFS.ruta : null;
+  dibujarRed(document.getElementById("cmp-dij"), fotoD, {
+    marcas: false, titulo: "Dijkstra · menos minutos",
+    pie: "Línea gruesa: la ruta de Dijkstra. Línea a trazos: la de BFS."
+  });
+
+  document.getElementById("cmp-bfs-tag").textContent = tramosTxt(RESP_BFS.tramos) + " · " + minutosTxt(RESP_BFS.minutos);
+  document.getElementById("cmp-dij-tag").textContent = minutosTxt(RESP_DIJ.minutos) + " · " + tramosTxt(RESP_DIJ.tramos);
+  document.getElementById("cmp-bfs-ruta").textContent = rutaTxt(RESP_BFS.ruta);
+  document.getElementById("cmp-dij-ruta").textContent = rutaTxt(RESP_DIJ.ruta);
+
+  const sumaB = RESP_BFS.ruta.slice(1).map(function (id, k) { return pesoEntre(RESP_BFS.ruta[k], id); });
+  const sumaD = RESP_DIJ.ruta.slice(1).map(function (id, k) { return pesoEntre(RESP_DIJ.ruta[k], id); });
+  document.getElementById("cmp-bfs-cap").textContent =
+    "Minutos tramo por tramo: " + sumaB.join(" + ") + " = " + RESP_BFS.minutos + ". Es el mínimo de transbordos, no de minutos.";
+  document.getElementById("cmp-dij-cap").textContent =
+    "Minutos tramo por tramo: " + sumaD.join(" + ") + " = " + RESP_DIJ.minutos + ". Es el mínimo de minutos, con " +
+    (RESP_DIJ.tramos - RESP_BFS.tramos) + " transbordos más.";
+
+  document.getElementById("porque-1").textContent = (difieren && TRAMO_CARO)
+    ? "BFS trata cada tramo como 1. El tramo " + nombre(TRAMO_CARO.tramo.a) + " – " + nombre(TRAMO_CARO.tramo.b) +
+      " dura " + minutosTxt(TRAMO_CARO.tramo.min) + ", pero para BFS vale lo mismo que uno de 3 minutos, así que lo toma y gana en conteo: " +
+      tramosTxt(RESP_BFS.tramos) + "."
+    : "Las dos rutas coinciden porque ningún tramo largo acorta el conteo.";
+  document.getElementById("porque-2").textContent = difieren
+    ? "Dijkstra sí ve ese precio. Prefiere " + tramosTxt(RESP_DIJ.tramos) + " cortos y llega en " + minutosTxt(RESP_DIJ.minutos) +
+      ", " + (RESP_BFS.minutos - RESP_DIJ.minutos) + " minutos menos. Ninguna de las dos respuestas está mal: responden preguntas distintas, y la unidad lo dice — transbordos es un conteo, minutos es una suma."
+    : "Si todos los tramos duraran lo mismo, esto pasaría siempre.";
+}
+
+function pintarCierre() {
+  document.getElementById("cierre-titulo").textContent =
+    "Menos transbordos: " + tramosTxt(RESP_BFS.tramos) + ". Menos minutos: " + minutosTxt(RESP_DIJ.minutos) + ".";
+  document.getElementById("cierre-bfs").textContent =
+    rutaTxt(RESP_BFS.ruta) + " — " + tramosTxt(RESP_BFS.tramos) + ", y tarda " + minutosTxt(RESP_BFS.minutos) + ".";
+  document.getElementById("cierre-dij").textContent =
+    rutaTxt(RESP_DIJ.ruta) + " — " + minutosTxt(RESP_DIJ.minutos) + ", con " + tramosTxt(RESP_DIJ.tramos) + ".";
+  document.getElementById("cierre-nota").textContent =
+    "La ruta de menos transbordos tarda " + (RESP_BFS.minutos - RESP_DIJ.minutos) +
+    " minutos más que la de menos minutos. Por eso el problema pide los dos algoritmos: una sola cifra no responde las dos preguntas.";
+
+  const off = CONFIRMADAS_FUERA.map(function (id) { return nombre(id) + " (" + RESP_DIJ.marca[id] + " min)"; });
+  document.getElementById("answer-off").textContent = off.length
+    ? "Porque crece por minutos desde el origen, como una mancha, no apuntando al destino. " + nombre(DESTINO) +
+      " está a " + minutosTxt(RESP_DIJ.minutos) + ", así que todo lo que esté más cerca se confirma antes: " +
+      off.join(", ") + ". Ninguna queda en la ruta final."
+    : "En esta red todas las confirmadas antes del destino quedaron en la ruta.";
+}
+
+function pintarPortada() {
+  document.getElementById("ficha-autor").textContent = AUTOR;
+  document.getElementById("ficha-red").textContent =
+    RED_NOMBRE + " · " + ESTACIONES.length + " estaciones · " + GRAFO.tramos.length + " tramos";
+  document.getElementById("ficha-od").textContent = nombre(ORIGEN) + " → " + nombre(DESTINO);
+
+  const foto = fotoVacia("dijkstra");
+  foto.ruta = RESP_DIJ.ruta;
+  foto.rutaAlterna = RESP_BFS.ruta;
+  dibujarRed(document.getElementById("svg-portada"), foto, {
+    marcas: false, titulo: "Las dos rutas en disputa",
+    pie: "Gruesa: menos minutos. A trazos: menos transbordos."
+  });
+  document.getElementById("cap-portada").textContent =
+    "Gruesa: " + minutosTxt(RESP_DIJ.minutos) + " en " + tramosTxt(RESP_DIJ.tramos) +
+    ". A trazos: " + tramosTxt(RESP_BFS.tramos) + " pero " + minutosTxt(RESP_BFS.minutos) + ".";
+
+  dibujarRed(document.getElementById("svg-red"), fotoVacia("dijkstra"), {
+    marcas: false, titulo: RED_NOMBRE + " · minutos por tramo"
+  });
+}
+
+
+/* ======================= 8. INVARIANTES ======================= */
+
+/* Comprueba al abrir que los datos siguen cumpliendo el enunciado. Si alguien
+   cambia un minuto y la red deja de ilustrar el problema, se avisa en pantalla
+   en vez de mostrar una conclusión falsa. */
+function verificarInvariantes() {
+  const fallas = [];
+
+  if (ESTACIONES.length < 6 || ESTACIONES.length > 14) {
+    fallas.push("El enunciado pide entre 6 y 14 vértices; hay " + ESTACIONES.length + ".");
+  }
+  GRAFO.tramos.forEach(function (t) {
+    if (!Number.isInteger(t.min) || t.min <= 0) {
+      fallas.push("El tramo " + nombre(t.a) + " – " + nombre(t.b) + " no tiene un peso entero positivo.");
+    }
+  });
+  ESTACIONES.forEach(function (e) {
+    if (!GRAFO.adj[e.id].length) fallas.push(nombre(e.id) + " quedó aislada.");
+  });
+
+  /* conexidad */
+  const vistas = {}; vistas[ORIGEN] = true;
+  const pila = [ORIGEN];
+  let n = 1;
+  while (pila.length) {
+    const u = pila.pop();
+    GRAFO.adj[u].forEach(function (e) {
+      if (!vistas[e.hacia]) { vistas[e.hacia] = true; n += 1; pila.push(e.hacia); }
+    });
+  }
+  if (n !== ESTACIONES.length) fallas.push("La red no es conexa: " + n + " de " + ESTACIONES.length + " estaciones alcanzables.");
+
+  if (!RESP_BFS.ruta) fallas.push("BFS no encuentra camino hasta " + nombre(DESTINO) + ".");
+  if (!RESP_DIJ.ruta) fallas.push("Dijkstra no encuentra camino hasta " + nombre(DESTINO) + ".");
+
+  if (RESP_BFS.ruta && RESP_DIJ.ruta) {
+    /* el corazón del problema 4.3 */
+    if (!(RESP_BFS.minutos > RESP_DIJ.minutos)) {
+      fallas.push("El problema 4.3 exige un par origen–destino donde la ruta de menos transbordos tarde MÁS: ahora tarda " +
+        RESP_BFS.minutos + " min contra " + RESP_DIJ.minutos + " min.");
+    }
+    if (!(RESP_DIJ.tramos > RESP_BFS.tramos)) {
+      fallas.push("La ruta de menos minutos debería usar más tramos que la de menos transbordos.");
+    }
+    if (mismaRuta(RESP_BFS.ruta, RESP_DIJ.ruta)) fallas.push("Las dos rutas salieron iguales: no hay comparación que mostrar.");
+
+    /* El motor de la comparación: debe existir un tramo que BFS tome y que
+       Dijkstra evite porque rodearlo cuesta menos minutos que recorrerlo. */
+    if (!TRAMO_CARO) {
+      fallas.push("No hay ningún tramo que gane en conteo y pierda en minutos: la comparación pierde su explicación.");
+    } else if (TRAMO_CARO.tramo.min <= TRAMO_CARO.rodeo.minutos) {
+      fallas.push("El tramo caro dejó de serlo: " + TRAMO_CARO.tramo.min + " min contra " + TRAMO_CARO.rodeo.minutos + " de rodearlo.");
+    }
+
+    /* fuerza bruta sobre caminos simples: confirma que BFS y Dijkstra dan el
+       óptimo real y que cada óptimo es único (si hubiera empate, la respuesta
+       del video sería ambigua) */
+    const todas = [];
+    (function explorar(u, camino, usadas) {
+      if (u === DESTINO) { todas.push(camino.slice()); return; }
+      if (todas.length > 20000) return;
+      GRAFO.adj[u].forEach(function (e) {
+        if (usadas[e.hacia]) return;
+        usadas[e.hacia] = true;
+        camino.push(e.hacia);
+        explorar(e.hacia, camino, usadas);
+        camino.pop();
+        delete usadas[e.hacia];
+      });
+    })(ORIGEN, [ORIGEN], (function () { const o = {}; o[ORIGEN] = true; return o; })());
+
+    const minTramos = Math.min.apply(null, todas.map(function (r) { return r.length - 1; }));
+    const minMin = Math.min.apply(null, todas.map(minutosDeRuta));
+    if (RESP_BFS.tramos !== minTramos) fallas.push("BFS no dio el mínimo real de tramos (" + RESP_BFS.tramos + " vs " + minTramos + ").");
+    if (RESP_DIJ.minutos !== minMin) fallas.push("Dijkstra no dio el mínimo real de minutos (" + RESP_DIJ.minutos + " vs " + minMin + ").");
+    const empTramos = todas.filter(function (r) { return r.length - 1 === minTramos; }).length;
+    const empMin = todas.filter(function (r) { return minutosDeRuta(r) === minMin; }).length;
+
+    console.log("%c[taller 4.3] invariantes", "font-weight:bold");
+    console.log("  caminos simples " + nombre(ORIGEN) + " → " + nombre(DESTINO) + ": " + todas.length);
+    console.log("  BFS      " + RESP_BFS.tramos + " tramos · " + RESP_BFS.minutos + " min · " + rutaTxt(RESP_BFS.ruta));
+    console.log("  Dijkstra " + RESP_DIJ.tramos + " tramos · " + RESP_DIJ.minutos + " min · " + rutaTxt(RESP_DIJ.ruta));
+    console.log("  óptimos únicos: tramos=" + (empTramos === 1) + ", minutos=" + (empMin === 1));
+    console.log("  confirmadas fuera de la ruta: " + (CONFIRMADAS_FUERA.map(nombre).join(", ") || "ninguna"));
+  }
+
+  if (AUTOR.indexOf("Escribe aquí") === 0) {
+    fallas.push("Falta el nombre del autor: edita la constante AUTOR, al comienzo del <script>.");
+  }
+
+  const aviso = document.getElementById("aviso");
+  if (fallas.length) {
+    aviso.innerHTML = '<button type="button" id="cerrar-aviso">Cerrar</button><b>Revisar antes de grabar:</b><br>' +
+      fallas.map(esc).join("<br>");
+    aviso.classList.add("show");
+    document.getElementById("cerrar-aviso").addEventListener("click", function () { aviso.classList.remove("show"); });
+    console.warn("[taller 4.3] " + fallas.length + " aviso(s):", fallas);
+  } else {
+    aviso.classList.remove("show");
+    console.log("%c[taller 4.3] todo en orden", "color:#0f6e68;font-weight:bold");
+  }
+  return fallas;
+}
+
+
+/* ======================= ARRANQUE ======================= */
+
+function iniciar() {
+  diapos = Array.prototype.slice.call(document.querySelectorAll(".slide"));
+
+  rellenarPseudo(document.querySelector("#lab-bfs [data-code]"), PSEUDO.bfs);
+  rellenarPseudo(document.querySelector("#lab-dijkstra [data-code]"), PSEUDO.dijkstra);
+
+  const raizBfs = document.getElementById("lab-bfs");
+  const raizDij = document.getElementById("lab-dijkstra");
+  reproductores.bfs = montarReproductor(
+    raizBfs,
+    function () { return pasosBfs(ORIGEN, DESTINO); },
+    function (paso) { renderLab(raizBfs, document.getElementById("svg-bfs"), paso); }
+  );
+  reproductores.dijkstra = montarReproductor(
+    raizDij,
+    function () { return pasosDijkstra(ORIGEN, DESTINO); },
+    function (paso) { renderLab(raizDij, document.getElementById("svg-dijkstra"), paso); }
+  );
+  reproductores.bfs.reconstruir();
+  reproductores.dijkstra.reconstruir();
+
+  pintarPortada();
+  pintarLeyendaLineas();
+  pintarAdyacencia();
+  pintarTrampa();
+  pintarMarcadores();
+  pintarComparacion();
+  pintarCierre();
+
+  document.getElementById("prev").addEventListener("click", function () { irA(actual - 1); });
+  document.getElementById("next").addEventListener("click", function () { irA(actual + 1); });
+  document.getElementById("start-btn").addEventListener("click", function () { irA(1); });
+  Array.prototype.forEach.call(document.querySelectorAll(".qa"), function (b) {
+    b.addEventListener("click", function () { b.nextElementSibling.classList.toggle("show"); });
+  });
+
+  document.addEventListener("keydown", function (ev) {
+    if (ev.target.matches("input, textarea")) return;
+    const rep = reproductorActivo();
+    if (ev.key === "ArrowRight" || ev.key === "PageDown") { ev.preventDefault(); irA(actual + 1); }
+    else if (ev.key === "ArrowLeft" || ev.key === "PageUp") { ev.preventDefault(); irA(actual - 1); }
+    else if (ev.key === "Home") { ev.preventDefault(); irA(0); }
+    else if (ev.key === "End") { ev.preventDefault(); irA(diapos.length - 1); }
+    else if ((ev.key === "n" || ev.key === "N") && rep) { ev.preventDefault(); rep.paso(1); }
+    else if ((ev.key === "p" || ev.key === "P") && rep) { ev.preventDefault(); rep.paso(-1); }
+    else if (ev.key === " " && rep && !ev.target.closest("button")) { ev.preventDefault(); rep.alternar(); }
+  });
+
+  const desdeHash = Number(String(location.hash || "").replace("#", ""));
+  irA(Number.isInteger(desdeHash) && desdeHash >= 1 && desdeHash <= diapos.length ? desdeHash - 1 : 0);
+
+  verificarInvariantes();
+}
+
+if (typeof document !== "undefined") {
+  document.addEventListener("DOMContentLoaded", iniciar);
+}
+</script>
+</body>
+</html>
