@@ -344,3 +344,8 @@ Alcance (qué entra y qué no): Entra el analisis de edad vs barrio y comuna, ta
 Dataset: peso_nacer, medata con sivigila, licencia, 19 filas y 1048576 columnas
 Variable(s) de interés: 15
 Limitaciones conocidas del dato: 
+
+## Quinto parcial
+
+- Video: 
+- Diapositivas: `quinto_parcial/index.html`
