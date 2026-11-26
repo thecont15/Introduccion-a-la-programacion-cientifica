@@ -1,0 +1,60 @@
+{
+  "notebook_reparacion": "notebooks/sivigila_bpn.ipynb",
+  "notebook_modelo": "notebooks/prediccion_peso_nacer_arbol.ipynb",
+  "csv_crudo": "data/sivigila_bpn.csv",
+  "csv_depurado": "data/processed/sivigila_bpn_depurado.csv",
+  "peso_nacer": {
+    "celda_notebook_indice_base_cero": 5,
+    "desviacion_estandar_muestral_g_redondeada": 167.32,
+    "nota": "Valor de la tabla descriptiva de pesos válidos; sustituye la aproximación de 169 g de las conclusiones."
+  },
+  "metodo": "Lectura de salidas guardadas y comprobación del parseo y de la talla en los CSV; sin reentrenar el modelo.",
+  "parseo": {
+    "NaN_numericos_por_SD": {"peso_nacer": 2, "talla_nacer": 2, "sem_gest": 2},
+    "total_NaN_numericos_por_SD": 6,
+    "NaT_por_fecha_centinela": {"fec_con_": 124, "ini_sin_": 10181},
+    "total_NaT_por_fecha_centinela": 10305,
+    "fallos_conversion_no_reconocidos": 0,
+    "nota": "Los centinelas no son errores de conversión desconocidos. Los conteos son por celda, no por registro único."
+  },
+  "auditoria_antes_imputacion": {
+    "celdas_notebook_indices_base_cero": [11, 17],
+    "faltantes": {
+      "niv_edu_ma_label": 1084,
+      "nombre_barrio": 338,
+      "comuna": 334,
+      "fec_con_": 124,
+      "ini_sin_": 10181,
+      "peso_nacer": 2,
+      "talla_nacer": 2,
+      "sem_gest": 2
+    },
+    "duplicados_exactos": 0,
+    "IDs_repetidos": 0,
+    "edades_senaladas_y_convertidas_a_faltante": 7
+  },
+  "imputacion_talla": {
+    "celda_notebook_indice_base_cero": 19,
+    "cantidad_imputada": 2,
+    "metodo": "mediana",
+    "mediana_cm": 46.0,
+    "observaciones_antes": 10185,
+    "observaciones_despues": 10187,
+    "desviacion_estandar_muestral_ddof": 1,
+    "desviacion_estandar_antes_cm": 2.05456871834215,
+    "desviacion_estandar_despues_cm": 2.054367965532013,
+    "desviacion_estandar_csv_depurado_cm": 2.054367965532013,
+    "nota": "La talla se normaliza de coma decimal a punto; SD se convierte a faltante. El valor posterior coincide con el CSV depurado."
+  },
+  "lecturas_figuras": {
+    "anual": {"celda_notebook_indice_base_cero": 22, "anio_maximo": 2018, "casos_maximo": 1147, "casos_2011": 96},
+    "comunas": {"celda_notebook_indice_base_cero": 24, "comuna_maximo": "Manrique", "casos": 858},
+    "educacion": {
+      "celda_notebook_indice_base_cero": 28,
+      "codigo_original": "2",
+      "etiqueta_de_la_figura": "Primaria",
+      "casos": 5261,
+      "advertencia": "La etiqueta procede del mapeo del notebook y no acredita la equivalencia oficial del código."
+    }
+  }
+}
