@@ -1,0 +1,87 @@
+{
+  "autor": "Jesid Alexander López Álvarez",
+  "fuente_csv": "https://raw.githubusercontent.com/thecont15/Introduccion-a-la-programacion-cientifica/70111e696a54f91fe73727847d9952f8f92afbca/data/sivigila_bpn.csv",
+  "sha256": "1a55372c433adb33d01ebfb6d769476c0350bde4509ccae683f31e3d9f1eb5d2",
+  "filas_crudas": 10187,
+  "columnas_crudas": 19,
+  "fallos_conversion": 0,
+  "duplicados_exactos": 0,
+  "filas_modelo": 10185,
+  "entrenamiento": 8148,
+  "prueba": 2037,
+  "X": [
+    "sem_gest",
+    "comuna",
+    "tipo_ss_",
+    "niv_edu_ma"
+  ],
+  "y": "peso_nacer",
+  "semilla": 42,
+  "profundidad": 2,
+  "min_samples_leaf": 20,
+  "MAE_entrenamiento": 124.32163546663615,
+  "metricas_prueba": [
+    {
+      "modelo": "Baseline media",
+      "MAE_g": 122.90183899045854,
+      "R2": -0.0068345984574011975
+    },
+    {
+      "modelo": "Baseline mediana",
+      "MAE_g": 115.22925871379479,
+      "R2": -0.05383431867006183
+    },
+    {
+      "modelo": "Árbol",
+      "MAE_g": 118.16924272500528,
+      "R2": 0.042361039901462005
+    }
+  ],
+  "mejora_vs_media_pct": 3.850712328088668,
+  "mejora_vs_mediana_pct": -2.5514214393349333,
+  "correlacion_gestacion_peso": 0.18939111816098578,
+  "importancias_pct": {
+    "sem_gest": 89.79043333472848,
+    "niv_edu_ma": 10.209566665271517,
+    "comuna": 0.0,
+    "tipo_ss_": 0.0
+  },
+  "figuras": [
+    {
+      "archivo": "01_notificaciones_anio.png",
+      "pregunta": "¿Cómo cambia el número de notificaciones entre 2011 y 2021?",
+      "lectura": "2011 tiene 96 registros; el máximo es 1,147 en 2018.",
+      "limite": "No demuestra cambios en incidencia ni cobertura completa del registro."
+    },
+    {
+      "archivo": "02_notificaciones_comuna.png",
+      "pregunta": "¿Qué comunas concentran más notificaciones en este extracto?",
+      "lectura": "MANRIQUE reúne 858 registros.",
+      "limite": "Más casos no significa más riesgo: falta el total de nacimientos por comuna."
+    },
+    {
+      "archivo": "03_distribucion_peso.png",
+      "pregunta": "¿Cómo se distribuye el peso dentro de los casos notificados?",
+      "lectura": "La mediana es 2360 g; el rango observado es 900–2499 g.",
+      "limite": "El extracto contiene bajo peso; no representa la distribución de todos los nacimientos."
+    },
+    {
+      "archivo": "04_gestacion_peso.png",
+      "pregunta": "¿Cómo varía el peso según las semanas de gestación registradas?",
+      "lectura": "La correlación en los pares completos es r = 0.19.",
+      "limite": "Es asociación dentro de una muestra seleccionada. El registro de 45 semanas se conserva señalado; no se infiere causalidad ni se extrapola a prematuros no observados."
+    },
+    {
+      "archivo": "05_educacion_codigos.png",
+      "pregunta": "¿Qué códigos de educación materna aparecen con más frecuencia?",
+      "lectura": "El código más frecuente es 2, con 5,261 registros.",
+      "limite": "Sin diccionario específico no se traduce el código 2 como primaria ni se calcula un riesgo por nivel educativo."
+    },
+    {
+      "archivo": "06_comparacion_modelos.png",
+      "pregunta": "¿El árbol reduce el error frente a predecir siempre un valor fijo?",
+      "lectura": "Árbol: 118.17 g; media: 122.90 g; mediana: 115.23 g.",
+      "limite": "Una diferencia en un split no prueba significación ni rendimiento futuro."
+    }
+  ]
+}

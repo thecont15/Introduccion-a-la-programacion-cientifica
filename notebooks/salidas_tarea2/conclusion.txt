@@ -1,0 +1,24 @@
+
+El árbol de profundidad **2** obtiene
+**MAE = 118.17 g** y **R² = 0.0424** en prueba.
+La referencia de media obtiene **122.90 g**
+y la de mediana **115.23 g**.
+El árbol **reduce** el MAE frente a la media
+(cambio relativo +3.85%) y **no reduce**
+el MAE frente a la mediana (-2.55%).
+No se afirma superioridad general a partir de esta única partición.
+
+La variable con mayor importancia es **sem_gest**
+(**89.79%** de la reducción de impureza).
+Esto describe reglas predictivas, no efectos causales.
+El peso observado va de **900 a 2499 g**,
+con desviación estándar **167.32 g**; las semanas van de
+**37 a 45**.
+La selección de casos y el rango observado restringen la extrapolación.
+La relación gestación–peso es **r = 0.19** en pares completos.
+
+**Qué no concluyo:** no estimo el riesgo por comuna o educación, no predigo
+todos los nacimientos, no identifico causas y no demuestro rendimiento en años
+futuros. Faltan denominadores, diccionario específico del extracto, disponibilidad
+temporal de los predictores y validación externa. Los extremos señalados necesitan
+revisión de la fuente, no una eliminación automática.

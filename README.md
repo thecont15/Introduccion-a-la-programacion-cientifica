@@ -10,6 +10,17 @@ Repositorio de entregas de algoritmos y análisis de datos en Python.
 - Soluciones de Lemonade Change y Assign Cookies, con pruebas exhaustivas.
 - Estado: verificación local disponible; capturas Accepted de LeetCode pendientes.
 
+## Tarea 2 — Peso al nacer
+
+- [README de la Tarea 2 de Jesid](Tarea2/README.md).
+- [Google Colab](https://colab.research.google.com/drive/1D-07HWEjbTfljqgGYukFc82ysKeUebFZ).
+- [Cuaderno ejecutado](notebooks/tarea2_jesid_peso_nacer.ipynb).
+- [Resultados y figuras](notebooks/salidas_tarea2/).
+
+El árbol obtiene MAE **118,17 g**, frente a **122,90 g** de la media y
+**115,23 g** de la mediana. El README de la tarea documenta el alcance,
+la ejecución y las comprobaciones de acceso pendientes.
+
 ## Datos del proyecto
 
 El análisis utiliza el extracto SIVIGILA de bajo peso al nacer en Medellín,

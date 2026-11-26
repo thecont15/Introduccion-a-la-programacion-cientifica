@@ -1,0 +1,20 @@
+variable,decision,por_que
+id,Conservar para trazabilidad; fuera de X,Identificador; comprobar unicidad.
+semana,Parsear; fuera de X,Semana administrativa; no confirma momento de nacimiento.
+edad_,Parsear; revisar extremos; fuera de X,Semántica materna no confirmada; no declarar imposible una edad por IQR.
+uni_med_,Conservar en auditoría; fuera de X,"Constante; indica unidad de edad, no identifica a quién pertenece."
+sexo_,Conservar código; fuera de X,No se ha verificado si corresponde a madre o recién nacido.
+nombre_barrio,Conservar hueco; fuera de X,Alta cardinalidad; comuna aproxima contexto geográfico.
+comuna,Normalizar; SIN DATO en modelo/figuras,No inventar municipio/comuna mediante la moda.
+tipo_ss_,Normalizar; SIN DATO en modelo,"Código nominal de aseguramiento, no número ordinal."
+cod_ase_,Centinelas a faltante; fuera de X,Código administrativo de alta cardinalidad.
+fec_con_,1900 a NaT; fuera de X,Fecha administrativa posterior o sin temporalidad confirmada.
+ini_sin_,1900 a NaT; fuera de X,Casi vacía; no aporta al objetivo.
+tip_cas_,Conservar en auditoría; fuera de X,Constante de este extracto.
+pac_hos_,Conservar código; fuera de X,Hospitalización podría ser consecuencia del estado al nacer.
+peso_nacer,Parsear; no imputar; excluir de modelo si falta,Es y; inventarla falsearía entrenamiento y evaluación.
+talla_nacer,Coma decimal a punto; conservar hueco; fuera de X,Medida del mismo parto que el peso; no disponible en el escenario propuesto.
+sem_gest,Parsear; conservar atípico positivo; mediana del tren si falta,Dato disponible al parto; umbral de revisión no prueba error.
+niv_edu_ma,Conservar código nominal; SIN DATO si falta,Sin equivalencia de etiquetas verificada para todos los años.
+evento,Conservar en auditoría; fuera de X,Define población seleccionada; constante.
+year_,Parsear; descriptivos; fuera de X,Año de registro; no tratarlo como fecha confirmada de nacimiento.
