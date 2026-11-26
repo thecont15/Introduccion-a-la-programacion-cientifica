@@ -8,7 +8,8 @@ Repositorio de entregas de algoritmos y análisis de datos en Python.
 
 - [Entrega de Jesid](Tarea1/Jesid/README.md).
 - Soluciones de Lemonade Change y Assign Cookies, con pruebas exhaustivas.
-- Estado: verificación local disponible; capturas Accepted de LeetCode pendientes.
+- Estado: ambos envíos Accepted, con capturas originales enlazadas:
+  Lemonade Change **62/62** y Assign Cookies **25/25**.
 
 ## Tarea 2 — Peso al nacer
 
