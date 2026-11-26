@@ -4,6 +4,12 @@
 
 Repositorio de entregas de algoritmos y análisis de datos en Python.
 
+## Tarea 1 — Algoritmos greedy
+
+- [Entrega de Jesid](Tarea1/Jesid/README.md).
+- Soluciones de Lemonade Change y Assign Cookies, con pruebas exhaustivas.
+- Estado: verificación local disponible; capturas Accepted de LeetCode pendientes.
+
 ## Datos del proyecto
 
 El análisis utiliza el extracto SIVIGILA de bajo peso al nacer en Medellín,
