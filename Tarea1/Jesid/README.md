@@ -18,6 +18,8 @@ Enunciado: [Tarea 1 del curso](https://github.com/alejandrosalgar/Introduccion-p
 - Tiempo: **O(n)**, una pasada por la fila.
 - Espacio auxiliar: **O(1)**, dos contadores.
 
+![Accepted — 860. Lemonade Change: 62 de 62 casos aprobados](evidencias/lemonade-change-accepted.png)
+
 ## 455. Assign Cookies
 
 - [Problema](https://leetcode.com/problems/assign-cookies/).
@@ -31,6 +33,8 @@ Enunciado: [Tarea 1 del curso](https://github.com/alejandrosalgar/Introduccion-p
 - Las listas recibidas no se modifican: se ordenan copias.
 - Tiempo: **O(n log n + m log m)**, dominado por las dos ordenaciones.
 - Espacio auxiliar: **O(n + m)** por las copias ordenadas.
+
+![Accepted — 455. Assign Cookies: 25 de 25 casos aprobados](evidencias/assign-cookies-accepted.png)
 
 ## Verificación local
 
@@ -46,10 +50,14 @@ de pagos** con búsquedas exhaustivas independientes para entradas pequeñas.
 
 ## Estado de entrega
 
-Las soluciones y pruebas están disponibles. La evidencia de **Accepted** en la
-cuenta de Jesid está pendiente para ambos problemas; las pruebas locales no
-sustituyen el Submit de LeetCode.
+Ambos envíos obtuvieron **Accepted** en LeetCode. Las capturas originales,
+sin recortes, incluyen el resultado del Submit, los casos aprobados, el usuario
+y las mediciones que mostró la plataforma:
 
-La entrega individual requiere capturas donde sean visibles el problema, el
-resultado Accepted, los casos aprobados y el usuario. Esas capturas deben
-adjuntarse junto a estas soluciones y publicarse en el repositorio individual.
+| Problema | Casos aprobados | Tiempo | Memoria |
+| --- | ---: | ---: | ---: |
+| 860. Lemonade Change | 62/62 | 1 ms | 23,23 MB |
+| 455. Assign Cookies | 25/25 | 19 ms | 21,89 MB |
+
+Las soluciones, pruebas y evidencias están reunidas en esta carpeta. Según el
+enunciado, la entrega de Tarea 1 debe publicarse en el repositorio individual.
